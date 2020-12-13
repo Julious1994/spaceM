@@ -11,6 +11,7 @@ import Video from './pages/Video/Video';
 import VideoDetail from './pages/Video/VideoDetail';
 import PaymentForm from './pages/Payment/PaymentForm';
 import SearchView from './pages/SearchMovie';
+import ProfileView from './pages/Profile/ProfileView';
 
 const routes = (Stack) => (
 	<Stack.Navigator screenOptions={{headerShown: false}}>
@@ -26,6 +27,7 @@ const routes = (Stack) => (
 		<Stack.Screen name="Video" component={Video} />
 		<Stack.Screen name="PaymentForm" component={PaymentForm} />
 		<Stack.Screen name="SearchView" component={SearchView} />
+		<Stack.Screen name="ProfileView" component={ProfileView} />
 	</Stack.Navigator>
 );
 
