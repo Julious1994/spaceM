@@ -10,6 +10,7 @@ import {
 	ImageBackground,
 	Dimensions,
 	Alert,
+	ActivityIndicator,
 } from 'react-native';
 import LinearGradiant from 'react-native-linear-gradient';
 import ScrollablePageView from '../../components/ScrollablePageView';
@@ -31,8 +32,8 @@ const ScreenWidth = Dimensions.get('window').width;
 const moreVideoLength = (ScreenWidth - 54) / 3;
 
 const getUri = (item, i) => {
-	return item.SubTitlePath
-		? {uri: `http://spacem.techymau.games/${item.SubTitlePath}`}
+	return item.ThumbnailPath
+		? {uri: `http://spacem.techymau.games/${item.ThumbnailPath}`}
 		: imageMapper.landscapeMovie.source;
 };
 
@@ -40,17 +41,42 @@ function VideoDetail(props) {
 	const {navigation, route} = props;
 	const {params = {}} = route;
 	const [state, dispatch] = useStateValue();
-	const {user} = state;
-	const {video: videoDetails = {}} = params;
+	const {user, watchList} = state;
+	const {video: videoDetails = {}, videos: moreVideos = []} = params;
 	const data = [...Array(15).keys()];
 	const [activeTab, setActiveTab] = React.useState(0);
 	const [inWatchList, setInWatchList] = React.useState(false);
+	const [relatedLoading, setRelatedLoading] = React.useState(false);
+	const [relatedList, setRelatedList] = React.useState([]);
 
 	const handleTabClick = React.useCallback((i) => {
 		setActiveTab(i);
 	}, []);
 
-	const handleVideoClick = React.useCallback((video) => {}, []);
+	const fetchRelated = React.useCallback(() => {
+		if (videoDetails.CategoryId) {
+			setRelatedLoading(true);
+			services
+				.get(`DisplayVideoList?CategoryId=${videoDetails.CategoryId}`)
+				.then((res) => {
+					if (res && Array.isArray(res)) {
+						setRelatedLoading(false);
+						setRelatedList([...res]);
+					}
+				});
+		}
+	}, [videoDetails.CategoryId]);
+
+	const handleVideoClick = React.useCallback(
+		(item) => {
+			navigation.dispatch(
+				StackActions.replace('VideoDetail', {
+					video: {...item},
+				}),
+			);
+		},
+		[navigation],
+	);
 	const handleBack = React.useCallback(() => {
 		navigation.goBack();
 	}, [navigation]);
@@ -72,19 +98,46 @@ function VideoDetail(props) {
 		);
 	};
 
+	React.useEffect(() => {
+		fetchRelated();
+	}, [fetchRelated]);
+
+	React.useEffect(() => {
+		if (videoDetails.VideoId) {
+			const index = watchList.findIndex(
+				(w) => w.VideoId === videoDetails.VideoId,
+			);
+			if (index !== -1) {
+				setInWatchList(true);
+			}
+		}
+	}, [videoDetails, watchList]);
+
 	const renderMoreView = () => {
+		if (relatedLoading) {
+			return (
+				<ActivityIndicator
+					size="large"
+					color="#159AEA"
+					style={commonStyles.loader}
+				/>
+			);
+		}
 		return (
 			<View style={[styles.moreViewContainer]}>
-				{data.map((v, i) => (
-					<TouchableOpacity key={i} onPress={() => handleVideoClick(v)}>
-						<Image
-							source={
-								imageMapper[i % 2 === 0 ? 'moviePhoto' : 'moviePhoto_2'].source
-							}
-							style={[styles.videoThumbnail, {width: moreVideoLength}]}
-						/>
-					</TouchableOpacity>
-				))}
+				{relatedList.map(
+					(v, i) =>
+						v.VideoId !== videoDetails.VideoId && (
+							<TouchableOpacity key={i} onPress={() => handleVideoClick(v)}>
+								<Image
+									source={{
+										uri: `http://spacem.techymau.games/${v.ThumbnailPath}`,
+									}}
+									style={[styles.videoThumbnail, {width: moreVideoLength}]}
+								/>
+							</TouchableOpacity>
+						),
+				)}
 			</View>
 		);
 	};
@@ -101,14 +154,26 @@ function VideoDetail(props) {
 							{videoDetails.MovieStudio}
 						</Typography>
 					</View>
-					<View style={styles.infoItemView}>
-						<Typography variant="body" style={styles.infoTitle}>
-							Directors
-						</Typography>
-						<Typography variant="description" style={styles.infoText}>
-							Christopher Nolan
-						</Typography>
-					</View>
+					{videoDetails.Director && (
+						<View style={styles.infoItemView}>
+							<Typography variant="body" style={styles.infoTitle}>
+								Starring
+							</Typography>
+							<Typography variant="description" style={styles.infoText}>
+								{videoDetails.Actor}
+							</Typography>
+						</View>
+					)}
+					{videoDetails.Director && (
+						<View style={styles.infoItemView}>
+							<Typography variant="body" style={styles.infoTitle}>
+								Directors
+							</Typography>
+							<Typography variant="description" style={styles.infoText}>
+								{videoDetails.Director}
+							</Typography>
+						</View>
+					)}
 					<View style={[styles.infoItemView]}>
 						<Typography variant="body" style={styles.infoTitle}>
 							Maturity Rating
@@ -125,14 +190,14 @@ function VideoDetail(props) {
 							Off beat, sci-fi
 						</Typography>
 					</View>
-					<View style={[styles.infoItemView]}>
+					{/* <View style={[styles.infoItemView]}>
 						<Typography variant="body" style={styles.infoTitle}>
 							Customer Reviews
 						</Typography>
 						<Typography variant="description" style={styles.infoText}>
 							No customer review yet
 						</Typography>
-					</View>
+					</View> */}
 					<View style={[styles.infoItemView, styles.noBottomBorder]}>
 						<Typography variant="body" style={styles.infoTitle}>
 							Did you know?
@@ -180,12 +245,11 @@ function VideoDetail(props) {
 	}, [videoDetails, user]);
 
 	const handleShare = React.useCallback(() => {
-		const type = videoDetails.SubTitlePath.split('.')[1];
+		const type = videoDetails.ThumbnailPath.split('.')[1];
 		sharePDFWithAndroid(
-			`http://spacem.techymau.games${videoDetails.SubTitlePath}`,
+			`http://spacem.techymau.games${videoDetails.ThumbnailPath}`,
 			`image/${type === 'jpg' ? 'jpeg' : type}`,
 		).then((base64Data) => {
-			console.log(base64Data, videoDetails.SubTitlePath);
 			const options = {
 				title: 'Share movie',
 				message: `Please watch this movie
@@ -200,17 +264,13 @@ function VideoDetail(props) {
 		});
 	}, [videoDetails]);
 
-	const handleRate = React.useCallback(() => {
-
-	}, []);
-
 	return (
 		<React.Fragment>
 			<ScrollablePageView style={{marginBottom: 96}}>
 				<ImageBackground
 					style={styles.imgBackground}
 					resizeMode="stretch"
-					source={imageMapper.moviePhoto2.source}>
+					source={getUri(videoDetails)}>
 					<TouchableOpacity style={styles.backButton} onPress={handleBack}>
 						<Image
 							source={imageMapper.leftArrow.source}
@@ -229,7 +289,7 @@ function VideoDetail(props) {
 					<View style={styles.movieSmallInfo}>
 						<Typography variant="tiny1">IMDb 8.6</Typography>
 						<View style={styles.dotSeparator} />
-						<Typography variant="tiny1">Drama, Sci-fi</Typography>
+						<Typography variant="tiny1">{videoDetails.Genre}</Typography>
 						<View style={styles.dotSeparator} />
 						<Typography variant="tiny1">
 							{moment(videoDetails.LaunchDate).format('yyyy')}
@@ -268,7 +328,7 @@ function VideoDetail(props) {
 								Watchlist
 							</Typography>
 						</TouchableOpacity>
-						<TouchableOpacity style={styles.actionItem} onPress={handleRate}>
+						{/* <TouchableOpacity style={styles.actionItem} onPress={handleRate}>
 							<Image
 								source={imageMapper.favourite.source}
 								style={styles.actionImage}
@@ -276,7 +336,7 @@ function VideoDetail(props) {
 							<Typography variant="tiny2" style={styles.actionText}>
 								Rate
 							</Typography>
-						</TouchableOpacity>
+						</TouchableOpacity> */}
 						<TouchableOpacity style={styles.actionItem} onPress={handleShare}>
 							<Image
 								source={imageMapper.share.source}
