@@ -12,10 +12,22 @@ import VideoDetail from './pages/Video/VideoDetail';
 import PaymentForm from './pages/Payment/PaymentForm';
 import SearchView from './pages/SearchMovie';
 import ProfileView from './pages/Profile/ProfileView';
+import ChangePassword from './pages/Profile/ChangePassword';
+import Notification from './pages/Notification';
+// support
+import Support from './pages/Support/Support';
+import TicketForm from './pages/Support/TicketForm';
+import TicketList from './pages/Support/TicketList';
+import TicketView from './pages/Support/TicketView';
+
 
 const routes = (Stack) => (
 	<Stack.Navigator screenOptions={{headerShown: false}}>
 		<Stack.Screen name="Login" component={LoginScreen} key="login" />
+		<Stack.Screen name="Support" component={Support} />
+		<Stack.Screen name="TicketForm" component={TicketForm} />
+		<Stack.Screen name="TicketList" component={TicketList} />
+		<Stack.Screen name="TicketView" component={TicketView} />
 		<Stack.Screen name="Home" component={HomeScreen} />
 		<Stack.Screen name="Transactions" component={Transactions} />
 		<Stack.Screen name="Profile" component={Profile} />
@@ -28,6 +40,9 @@ const routes = (Stack) => (
 		<Stack.Screen name="PaymentForm" component={PaymentForm} />
 		<Stack.Screen name="SearchView" component={SearchView} />
 		<Stack.Screen name="ProfileView" component={ProfileView} />
+		<Stack.Screen name="ChangePassword" component={ChangePassword} />
+		<Stack.Screen name="Notification" component={Notification} />
+
 	</Stack.Navigator>
 );
 
