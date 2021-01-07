@@ -5,6 +5,9 @@ export const initialState = {
 	drawer: false,
 	notification: null,
 	loading: false,
+	watchList: [],
+	continueWatchingList: [],
+	purchasedList: [],
 };
 
 export const reducer = (state, action) => {
@@ -40,6 +43,59 @@ export const reducer = (state, action) => {
 			return {
 				...state,
 				loading: action.loading,
+			};
+		case 'SET_PURCHASED':
+			return {
+				...state,
+				purchasedList: action.data,
+			};
+		case 'ADD_PURCHASED':
+			return {
+				...state,
+				purchasedList: [...state.purchasedList, {...action.data}],
+			};
+		case 'SET_WATCHLIST':
+			return {
+				...state,
+				watchList: [...action.data],
+			};
+		case 'ADD_WATCHLIST':
+			return {
+				...state,
+				watchList: [...state.watchList, {...action.data}],
+			};
+		case 'REMOVE_WATCHLIST':
+			const list = state.watchList.filter((w) => w.VideoId !== action.id);
+			return {
+				...state,
+				watchList: [...list],
+			};
+		case 'SET_CONTINUE_WATCHING':
+			return {
+				...state,
+				continueWatchingList: [...action.data],
+			};
+		case 'UPDATE_CONTINUE_WATCHING':
+			let watchingList = [...state.continueWatchingList];
+			const index = watchingList.findIndex(
+				(w) => w.VideoId === action.data.VideoId,
+			);
+			if (index === -1) {
+				watchingList = [...watchingList, {...action.data}];
+			} else {
+				watchingList = state.continueWatchingList.map((c) => {
+					if (c.VideoId === action.data.VideoId) {
+						return {
+							...c,
+							WatchTime: action.data.WatchTime,
+						};
+					}
+					return c;
+				});
+			}
+			return {
+				...state,
+				continueWatchingList: [...watchingList],
 			};
 		default:
 			return state;
