@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">spaceM</string>
+		<string name="app_name">spaceM</string>
+		<string name="facebook_app_id">264975321637112</string>
+		<string name="fb_login_protocol_scheme">fb264975321637112</string>
 </resources>

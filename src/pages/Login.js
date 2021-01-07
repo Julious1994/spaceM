@@ -17,6 +17,7 @@ import Service from '../services/http';
 import Page from '../components/Page';
 import {useStateValue} from '../store/store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {LoginButton, AccessToken, LoginManager} from 'react-native-fbsdk';
 
 const services = new Service();
 
@@ -48,7 +49,7 @@ function Login(props) {
 			services.post('Login', data).then(async (res) => {
 				dispatch({type: 'SET_LOADING', loading: false});
 				if (res.status === 200) {
-					dispatch({type: 'SET_USER', user: res.res});
+					dispatch({type: 'SET_USER', userData: res.res});
 					await AsyncStorage.setItem('user', JSON.stringify({...res.res}));
 					navigation.dispatch(
 						StackActions.replace('Home', {
@@ -85,6 +86,61 @@ function Login(props) {
 		}
 		getUser();
 	}, [dispatch, navigation]);
+
+	const handleSocialLogin = React.useCallback(
+		(json, token) => {
+			const data = {
+				Email: json.email,
+				UserName: json.name,
+				TokenId: json.id,
+			};
+			services.post('SocialLogin', data).then(async (res) => {
+				console.log(res);
+				dispatch({type: 'SET_LOADING', loading: false});
+				if (res.status === 200) {
+					dispatch({type: 'SET_USER', userData: res.res});
+					await AsyncStorage.setItem('user', JSON.stringify({...res.res}));
+					navigation.dispatch(
+						StackActions.replace('Home', {
+							params: {user: {...res.res}},
+						}),
+					);
+				} else {
+					let message = '';
+					if (Array.isArray(res.res)) {
+						message = res.res[0];
+					} else {
+						message = res.res || res.res.Message;
+					}
+					Alert.alert('Network Error', message);
+				}
+			});
+		},
+		[dispatch, navigation],
+	);
+
+	const handleFB = React.useCallback(async () => {
+		dispatch({type: 'SET_LOADING', loading: true});
+		LoginManager.setLoginBehavior('web_only');
+		const result = await LoginManager.logInWithPermissions([
+			'public_profile',
+			'email',
+		]);
+		console.log(result);
+		AccessToken.getCurrentAccessToken().then((data) => {
+			console.log(data.accessToken.toString());
+			const token = data.accessToken.toString();
+			fetch(
+				'https://graph.facebook.com/v2.5/me?fields=email,name,friends&access_token=' +
+					token,
+			)
+				.then((response) => response.json())
+				.then((json) => {
+					handleSocialLogin(json, token);
+					console.log(json);
+				});
+		});
+	}, [dispatch, handleSocialLogin]);
 
 	return (
 		<Page>
@@ -129,6 +185,7 @@ function Login(props) {
 						</Typography>
 					</TouchableOpacity>
 				</View>
+				<Button title="Login with Facebook" onPress={handleFB} />
 			</View>
 		</Page>
 	);
@@ -159,6 +216,7 @@ const styles = StyleSheet.create({
 	signupLinkContainer: {
 		display: 'flex',
 		flexDirection: 'row',
+		marginBottom: 15,
 		// position: 'absolute',
 		marginTop: 75,
 		alignSelf: 'center',
