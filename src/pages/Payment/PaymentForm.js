@@ -1,7 +1,6 @@
 import React from 'react';
 import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import Typography from '../../components/Typography';
-import Input from '../../components/Input';
 import Button from '../../components/Button';
 import ScrollablePageView from '../../components/ScrollablePageView';
 import commonStyles from '../../commonStyles';
@@ -9,6 +8,7 @@ import imageMapper from '../../images/imageMapper';
 import StatusView from './StatusView';
 import {StackActions} from '@react-navigation/native';
 import Popup from './PopupOption';
+import {getUri} from '../../utils';
 
 const Header = ({navigation}) => (
 	<View style={styles.headerContainer}>
@@ -36,7 +36,9 @@ const PaymentCard = ({onPress, payment}) => (
 );
 
 function PaymentForm(props) {
-	const {navigation} = props;
+	const {navigation, route} = props;
+	const {params = {}} = route;
+	const {video} = params;
 	const [status, setStatus] = React.useState();
 	const [payment, setPayment] = React.useState('');
 	const [showCoupen, setShowCoupen] = React.useState(false);
@@ -70,7 +72,15 @@ function PaymentForm(props) {
 	}
 
 	return (
-		<ScrollablePageView header={<Header navigation={navigation} />}>
+		<ScrollablePageView
+			header={<Header navigation={navigation} />}
+			bottomBar={
+				<Button
+					style={styles.resetButton}
+					title="PAY NOW"
+					onPress={handlePayment}
+				/>
+			}>
 			<Popup open={showCoupen} onClose={() => setShowCoupen(false)} />
 			<View style={[commonStyles.pageStyle, styles.container]}>
 				<View style={styles.row}>
@@ -84,26 +94,31 @@ function PaymentForm(props) {
 					</TouchableOpacity> */}
 				</View>
 				<View style={styles.planViewContainer}>
-					<Image source={imageMapper.landscapeMovie.source} style={styles.movieImage} />
+					<Image
+						source={getUri(video)}
+						style={styles.movieImage}
+					/>
 					<View style={{marginTop: 10}}>
-						<Typography variant="title2">Avengers</Typography>
-						<Typography variant="body" style={{fontWeight: '100'}}>
-							Watch on 4 screens
+						<Typography variant="description" lines={1}>
+							{video.Title}
 						</Typography>
+						{/* <Typography variant="body" style={{fontWeight: '100'}}>
+							Watch on 4 screens
+						</Typography> */}
 					</View>
 					<View style={styles.priceView}>
-						<Typography variant="title2">$8.33</Typography>
+						<Typography variant="title2">{`$${video.Amount}`}</Typography>
 						{/* <Typography variant="title3" style={styles.priceMonth}>
 							/m
 						</Typography> */}
 					</View>
 				</View>
-				<TouchableOpacity onPress={() => setShowCoupen(true)} style={styles.coupenView}>
+				{/* <TouchableOpacity onPress={() => setShowCoupen(true)} style={styles.coupenView}>
 					<Typography variant="body" style={{color: '#159AEA'}}>
 						Use Coupen
 					</Typography>
-				</TouchableOpacity>
-				<View style={styles.separator} />
+				</TouchableOpacity> */}
+				{/* <View style={styles.separator} />
 				<View>
 					<Typography style={styles.myCardText} variant="body">
 						My Card
@@ -117,12 +132,7 @@ function PaymentForm(props) {
 					<Typography variant="body" style={styles.addNewCard}>
 						Add new card
 					</Typography>
-				</TouchableOpacity>
-				<Button
-					style={styles.resetButton}
-					title="PAY NOW"
-					onPress={handlePayment}
-				/>
+				</TouchableOpacity> */}
 			</View>
 		</ScrollablePageView>
 	);
@@ -146,7 +156,9 @@ const styles = StyleSheet.create({
 		marginBottom: 10,
 	},
 	resetButton: {
-		marginTop: 25,
+		marginBottom: 25,
+		marginLeft: '5%',
+		marginRight: '5%',
 	},
 	headerContainer: {
 		position: 'relative',

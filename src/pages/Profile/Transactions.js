@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import Typography from './../../components/Typography';
+import ScrollablePageView from './../../components/ScrollablePageView';
 import Input from './../../components/Input';
 import Button from './../../components/Button';
 import commonStyles from './../../commonStyles';
@@ -27,8 +28,8 @@ const Header = ({navigation}) => (
 );
 
 const getUri = (item, i) => {
-	return item.SubTitlePath
-		? {uri: `http://spacem.techymau.games/${item.SubTitlePath}`}
+	return item.ThumbnailPath
+		? {uri: `http://spacem.techymau.games/${item.ThumbnailPath}`}
 		: imageMapper.landscapeMovie.source;
 };
 
@@ -50,8 +51,9 @@ function Transactions(props) {
 	}, [state.user]);
 
 	return (
-		<React.Fragment>
-			<Header navigation={props.navigation} />
+		<ScrollablePageView
+			navigation={props.navigation}
+			header={<Header navigation={props.navigation} />}>
 			<View
 				style={[
 					commonStyles.pageStyle,
@@ -126,7 +128,7 @@ function Transactions(props) {
 					</View> */}
 				</View>
 			</View>
-		</React.Fragment>
+		</ScrollablePageView>
 	);
 }
 
