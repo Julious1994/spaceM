@@ -26,6 +26,8 @@ import {useStateValue} from '../../store/store';
 import moment from 'moment';
 import {sharePDFWithAndroid} from '../../utils';
 import Share from 'react-native-share';
+import LoaderView from '../../components/Loader';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const services = new Service();
 const ScreenWidth = Dimensions.get('window').width;
@@ -48,6 +50,7 @@ function VideoDetail(props) {
 	const [inWatchList, setInWatchList] = React.useState(false);
 	const [relatedLoading, setRelatedLoading] = React.useState(false);
 	const [relatedList, setRelatedList] = React.useState([]);
+	const [shareLoading, setShareLoading] = React.useState(false);
 
 	const handleTabClick = React.useCallback((i) => {
 		setActiveTab(i);
@@ -97,6 +100,19 @@ function VideoDetail(props) {
 			</LinearGradiant>
 		);
 	};
+
+	const removeItem = React.useCallback(() => {
+		const item = watchList.find((w) => w.VideoId === videoDetails.VideoId);
+		if (item && item.WatchId) {
+			services.post('RemoveWatchList', {Id: item.WatchId}).then((res) => {
+				Alert.alert('Delete Watch item', res.res);
+				if (res.status === 200) {
+					dispatch({type: 'REMOVE_WATCHLIST', id: item.VideoId});
+					setInWatchList(false);
+				}
+			});
+		}
+	}, [dispatch, videoDetails, watchList]);
 
 	React.useEffect(() => {
 		fetchRelated();
@@ -174,22 +190,6 @@ function VideoDetail(props) {
 							</Typography>
 						</View>
 					)}
-					<View style={[styles.infoItemView]}>
-						<Typography variant="body" style={styles.infoTitle}>
-							Maturity Rating
-						</Typography>
-						<Typography variant="description" style={styles.infoText}>
-							13+
-						</Typography>
-					</View>
-					<View style={[styles.infoItemView]}>
-						<Typography variant="body" style={styles.infoTitle}>
-							Content Advisory
-						</Typography>
-						<Typography variant="description" style={styles.infoText}>
-							Off beat, sci-fi
-						</Typography>
-					</View>
 					{/* <View style={[styles.infoItemView]}>
 						<Typography variant="body" style={styles.infoTitle}>
 							Customer Reviews
@@ -198,18 +198,6 @@ function VideoDetail(props) {
 							No customer review yet
 						</Typography>
 					</View> */}
-					<View style={[styles.infoItemView, styles.noBottomBorder]}>
-						<Typography variant="body" style={styles.infoTitle}>
-							Did you know?
-						</Typography>
-						<Typography variant="description" style={styles.infoText}>
-							Todd Phillips helms a gritty origin story starring Joaquin Phoenix
-							and Robert De Niro that centers around the iconic arch nemesis in
-							an original, standalone story not seen before on screen. Phillips'
-							exploration of Arthur Fleck, a man disregarded by society, is not
-							only a harsh character study, but also a broader cautionary tale.
-						</Typography>
-					</View>
 				</View>
 			</ScrollView>
 		);
@@ -234,22 +222,28 @@ function VideoDetail(props) {
 			VideoId: videoDetails.VideoId,
 			CustomerId: user.CustomerId,
 		};
-		services.post('AddWatchList', watchListData).then((res) => {
+		services.post('AddWatchList', watchListData).then(async (res) => {
 			if (res.status === 200) {
 				setInWatchList(true);
+				const result = await services.get(
+					`WatchListVideo?CustomerId=${state.user.CustomerId}`,
+				);
+				dispatch({type: 'SET_WATCHLIST', data: [...result]});
 				Alert.alert('Success', res.res);
 			} else {
 				Alert.alert('Server problem', res.res);
 			}
 		});
-	}, [videoDetails, user]);
+	}, [videoDetails, user, dispatch, state.user]);
 
 	const handleShare = React.useCallback(() => {
 		const type = videoDetails.ThumbnailPath.split('.')[1];
+		setShareLoading(true);
 		sharePDFWithAndroid(
 			`http://spacem.techymau.games${videoDetails.ThumbnailPath}`,
 			`image/${type === 'jpg' ? 'jpeg' : type}`,
 		).then((base64Data) => {
+			setShareLoading(false);
 			const options = {
 				title: 'Share movie',
 				message: `Please watch this movie
@@ -266,6 +260,7 @@ function VideoDetail(props) {
 
 	return (
 		<React.Fragment>
+			{shareLoading && <LoaderView />}
 			<ScrollablePageView style={{marginBottom: 96}}>
 				<ImageBackground
 					style={styles.imgBackground}
@@ -287,8 +282,6 @@ function VideoDetail(props) {
 				<View style={[commonStyles.compactPageStyle]}>
 					<Typography variant="title1">{videoDetails.Title}</Typography>
 					<View style={styles.movieSmallInfo}>
-						<Typography variant="tiny1">IMDb 8.6</Typography>
-						<View style={styles.dotSeparator} />
 						<Typography variant="tiny1">{videoDetails.Genre}</Typography>
 						<View style={styles.dotSeparator} />
 						<Typography variant="tiny1">
@@ -296,9 +289,6 @@ function VideoDetail(props) {
 						</Typography>
 						<View style={styles.dotSeparator} />
 						<Typography variant="tiny1">2h 49min</Typography>
-						<View style={styles.ageView}>
-							<Typography variant="tiny1">18+</Typography>
-						</View>
 					</View>
 					<Typography variant="description">
 						{videoDetails.Description ||
@@ -309,25 +299,41 @@ function VideoDetail(props) {
 							only a harsh character study, but also a broader cautionary tale.`}
 					</Typography>
 					<View style={styles.actionView}>
-						<TouchableOpacity
-							style={styles.actionItem}
-							onPress={handleAddWatchList}>
-							<Image
-								source={imageMapper.plusRound.source}
-								style={[
-									styles.actionImage,
-									inWatchList && styles.activeWathcListImage,
-								]}
-							/>
-							<Typography
-								variant="tiny2"
-								style={[
-									styles.actionText,
-									inWatchList && styles.activeWathcListText,
-								]}>
-								Watchlist
-							</Typography>
-						</TouchableOpacity>
+						{inWatchList ? (
+							<TouchableOpacity style={styles.actionItem} onPress={removeItem}>
+								<View style={styles.closeView}>
+									<Icon name="close" size={16} color="#fff" />
+								</View>
+								<Typography
+									variant="tiny2"
+									style={[
+										styles.actionText,
+										inWatchList && styles.activeWathcListText,
+									]}>
+									Watchlist
+								</Typography>
+							</TouchableOpacity>
+						) : (
+							<TouchableOpacity
+								style={styles.actionItem}
+								onPress={handleAddWatchList}>
+								<Image
+									source={imageMapper.plusRound.source}
+									style={[
+										styles.actionImage,
+										inWatchList && styles.activeWathcListImage,
+									]}
+								/>
+								<Typography
+									variant="tiny2"
+									style={[
+										styles.actionText,
+										inWatchList && styles.activeWathcListText,
+									]}>
+									Watchlist
+								</Typography>
+							</TouchableOpacity>
+						)}
 						{/* <TouchableOpacity style={styles.actionItem} onPress={handleRate}>
 							<Image
 								source={imageMapper.favourite.source}
@@ -445,6 +451,7 @@ const styles = StyleSheet.create({
 	},
 	actionItem: {
 		padding: 12,
+		alignItems: 'center',
 	},
 	actionImage: {
 		width: 32,
@@ -492,7 +499,20 @@ const styles = StyleSheet.create({
 		tintColor: '#159AEA',
 	},
 	activeWathcListText: {
-		color: '#159AEA',
+		// color: '#159AEA',
+		marginTop: 7,
+	},
+	closeView: {
+		height: 32,
+		width: 32,
+		borderColor: '#666F7B',
+		borderRadius: 32,
+		borderWidth: 0.5,
+		backgroundColor: 'rgba(255, 255, 255, 0.1)',
+		display:'flex',
+		flexDirection: 'column',
+		justifyContent: 'center',
+		alignItems: 'center',
 	},
 });
 
