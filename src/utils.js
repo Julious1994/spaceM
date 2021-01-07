@@ -1,5 +1,7 @@
 import RNFS from 'react-native-fs';
 import RNFetchBlob from 'rn-fetch-blob';
+import imageMapper from './images/imageMapper';
+import {Dimensions} from 'react-native';
 
 export function sharePDFWithAndroid(fileUrl, type) {
 	let filePath = null;
@@ -19,3 +21,21 @@ export function sharePDFWithAndroid(fileUrl, type) {
 			// remove the image or pdf from device's storage
 		});
 }
+
+export const getUri = (item, i) => {
+	return item.ThumbnailPath
+		? {uri: `http://spacem.techymau.games/${item.ThumbnailPath}`}
+		: imageMapper.landscapeMovie.source;
+};
+
+export function getInitial(txt = '') {
+	return txt.substring(0, 1);
+}
+
+export const isLandscape = () => {
+	const dim = Dimensions.get('screen');
+	if (dim.width >= dim.height) {
+		return true;
+	}
+	return false;
+};

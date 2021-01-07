@@ -23,6 +23,10 @@ const styles = StyleSheet.create({
 		width: 10,
 		height: 16,
 	},
+	loader: {
+		alignSelf: 'center',
+		marginTop: 15,
+	},
 });
 
 export default styles;
