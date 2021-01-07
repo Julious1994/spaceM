@@ -3,10 +3,11 @@ import {View, ScrollView, SafeAreaView, StyleSheet} from 'react-native';
 import commonStyles from './../commonStyles';
 import Loader from './Loader';
 import {useStateValue} from '../store/store';
+import Drawer from '../pages/Drawer';
 
 function ScrollablePageView(props) {
-	const [state] = useStateValue();
-	const {scrollable = true, bottomBar, header} = props;
+	const [state, dispatch] = useStateValue();
+	const {scrollable = true, bottomBar, header, navigation} = props;
 	return (
 		<View style={[commonStyles.pageStyle, styles.safeAreaView]}>
 			{header}
@@ -21,6 +22,7 @@ function ScrollablePageView(props) {
 			</View>
 			{bottomBar}
 			{state.loading && <Loader />}
+			{state.drawer && <Drawer navigation={navigation} dispatch={dispatch} />}
 		</View>
 	);
 }

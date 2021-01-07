@@ -104,4 +104,7 @@ export default {
 	backwardPlay: {
 		source: require('./backwardPlay.png'),
 	},
+	thumb: {
+		source: require('./thumb.png'),
+	},
 };
