@@ -4,15 +4,19 @@ import commonStyles from '../../commonStyles';
 import Typography from '../../components/Typography';
 import imageMapper from '../../images/imageMapper';
 import {StackActions} from '@react-navigation/native';
+import {getInitial} from '../../utils';
+import {useStateValue} from '../../store/store';
 
-function ProfileView({active}) {
+function ProfileView({active, user}) {
 	return (
 		<View style={[styles.profileImageView]}>
-			<Image
+					<Text style={styles.profileText}>{getInitial(user?.UserName)}</Text>
+
+			{/* <Image
 				style={[styles.profileImage, active && styles.activeProfileImage]}
 				resizeMode="cover"
 				source={imageMapper.moviePhoto2.source}
-			/>
+			/> */}
 		</View>
 	);
 }
@@ -28,7 +32,7 @@ function MenuItem(props) {
 					resizeMode="contain"
 				/>
 			)}
-			{props.component && <Component active={props.active} />}
+			{props.component && <Component active={props.active} user={props.user} />}
 			<Typography variant="tiny2" style={[styles.menuTitle, props.active && styles.activeTitle]}>
 				{props.title}
 			</Typography>
@@ -45,6 +49,7 @@ const menus = [
 
 function BottomBar(props) {
 	const {navigation} = props;
+	const [state] = useStateValue();
 	const handleRedirect = React.useCallback(
 		(page) => {
 			navigation.dispatch(StackActions.push(page));
@@ -61,6 +66,7 @@ function BottomBar(props) {
 					component={menu.Component}
 					active={props.active === i}
 					title={menu.title}
+					user={state.user}
 					onPress={() => handleRedirect(menu.page)}
 				/>
 			))}
@@ -105,6 +111,20 @@ const styles = StyleSheet.create({
 	},
 	profileImageView: {
 		alignSelf: 'center',
+		borderWidth: 1,
+		borderColor: '#0879BE',
+		backgroundColor: '#01142E',
+		width: 22,
+		height: 22,
+		borderRadius: 22,
+		alignItems: 'center',
+		display: 'flex',
+		flexDirection: 'column',
+		justifyContent: 'center',
+	},
+	profileText: {
+		color: '#fff',
+		fontSize: 12,
 	},
 	profileImage: {
 		borderRadius: 76,
