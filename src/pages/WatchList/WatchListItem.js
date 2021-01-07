@@ -7,8 +7,8 @@ import moment from 'moment';
 function WatchListItem(props) {
 	const {item: video = {}} = props;
 	const getUri = (item) => {
-		return item.SubTitlePath
-			? {uri: `http://spacem.techymau.games/${item.SubTitlePath}`}
+		return item.ThumbnailPath
+			? {uri: `http://spacem.techymau.games/${item.ThumbnailPath}`}
 			: imageMapper.moviePhoto.source;
 	};
 	return (
@@ -57,6 +57,7 @@ const styles = StyleSheet.create({
 	},
 	imageView: {
 		width: '40%',
+		// alignSelf: 'flex-start'
 	},
 	image: {
 		height: '100%',

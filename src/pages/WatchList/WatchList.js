@@ -69,7 +69,7 @@ function WatchList(props) {
 	const removeItem = React.useCallback(
 		({item}) => {
 			if (item.VideoId) {
-				services.post('RemoveWatchList', {Id: item.VideoId}).then((res) => {
+				services.post('RemoveWatchList', {Id: item.WatchId}).then((res) => {
 					Alert.alert('Delete Watch item', res.res);
 					if (res.status === 200) {
 						setShowOption(false);
