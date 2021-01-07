@@ -1,7 +1,7 @@
 // import AsyncStorage from '@react-native-community/async-storage';
 
-const joinURL = (baseURL, url) => {
-	return `${baseURL}/${url}`;
+const joinURL = (baseURL, url, joiner) => {
+	return `${baseURL}${joiner}/${url}`;
 };
 
 let Headers = {
@@ -10,12 +10,13 @@ let Headers = {
 
 class Service {
 	constructor(props = {}) {
-		this.baseURL = 'http://spacem.techymau.games/api/HomeApi';
+		this.baseURL = 'http://spacem.techymau.games/api';
 		this.token = props.token;
 	}
 
 	request(url, method = 'POST', data = null, otherOptions = {}) {
-		url = joinURL(this.baseURL, url);
+		const {joiner = '/HomeApi'} = otherOptions;
+		url = joinURL(this.baseURL, url, joiner);
 		const {json = true} = otherOptions;
 		if (this.token) {
 			Headers['Authorization'] = this.token;
@@ -30,6 +31,9 @@ class Service {
 			headers: Headers,
 			method,
 		};
+		if (otherOptions.formData) {
+			delete options.headers;
+		}
 		if (data && json) {
 			options.body = JSON.stringify({...data});
 		} else if (data && !otherOptions.json) {
@@ -44,9 +48,9 @@ class Service {
 		this.request(url, method, data);
 	}
 
-	get(url) {
+	get(url, otherOptions) {
 		const method = 'GET';
-		return this.request(url, method, null)
+		return this.request(url, method, null, otherOptions)
 			.then((res) => {
 				console.log('GET', res);
 				return res.json();
@@ -57,9 +61,9 @@ class Service {
 			});
 	}
 
-	post(url, data) {
+	post(url, data, otherOptions) {
 		const method = 'POST';
-		return this.request(url, method, data)
+		return this.request(url, method, data, otherOptions)
 			.then(async (res) => {
 				console.log('poS', res);
 				const result = await res.json();
@@ -71,9 +75,9 @@ class Service {
 			});
 	}
 
-	put(url, data) {
+	put(url, data, otherOptions) {
 		const method = 'PUT';
-		return this.request(url, method, data)
+		return this.request(url, method, data, otherOptions)
 			.then((res) => res.json())
 			.catch((err) => {
 				console.log('ERR:', err);
@@ -81,10 +85,11 @@ class Service {
 			});
 	}
 
-	uploadFile(url, data) {
+	uploadFile(url, data, otherOptions) {
 		const method = 'POST';
 
 		const options = {
+			...otherOptions,
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
 				accept: '*',
@@ -95,9 +100,9 @@ class Service {
 		return this.request(url, method, data, options);
 	}
 
-	delete(url, data) {
+	delete(url, data, otherOptions) {
 		const method = 'DELETE';
-		return this.request(url, method, data)
+		return this.request(url, method, data, otherOptions)
 			.then((res) => res.json())
 			.catch((err) => {
 				console.log('ERR:', err);
