@@ -8,6 +8,7 @@ import {
 	Alert,
 } from 'react-native';
 import Typography from './../../components/Typography';
+import ScrollablePageView from './../../components/ScrollablePageView';
 import Input from './../../components/Input';
 import Button from './../../components/Button';
 import commonStyles from './../../commonStyles';
@@ -19,12 +20,26 @@ import {useStateValue} from '../../store/store';
 
 const services = new Service();
 
+const Header = ({navigation}) => (
+	<View style={[styles.headerContainer]}>
+		<TouchableOpacity
+			style={styles.backButton}
+			onPress={() => navigation.goBack()}>
+			<Image
+				source={imageMapper.leftArrow.source}
+				style={styles.backButtonIcon}
+			/>
+		</TouchableOpacity>
+		<Typography variant="title3">Edit Profile</Typography>
+	</View>
+);
+
 function ProfileView(props) {
 	const {navigation, route} = props;
 	const {params = {}} = route;
 	const [state, dispatch] = useStateValue();
 	const {user} = state;
-	const {profile = {}} = params;
+	const {profile = {}, updateProfile} = params;
 	const [credential, setCredential] = React.useState({});
 
 	const handleChange = React.useCallback((key, value) => {
@@ -33,43 +48,35 @@ function ProfileView(props) {
 		});
 	}, []);
 	const handleSignup = React.useCallback(() => {
-		if (
-			credential.UserName &&
-			credential.Password &&
-			credential.confirmPassword &&
-			credential.Email
-		) {
-			if (credential.Password === credential.confirmPassword) {
-				const data = {...credential};
-				delete data.confirmPassword;
-				dispatch({type: 'SET_LOADING', loading: true});
-				services.post('Registration', data).then((res) => {
-					dispatch({type: 'SET_LOADING', loading: false});
-
-					Alert.alert('Success', 'Registration is successful', [
-						{
-							text: 'OK',
-							onPress: () => {
-								navigation.dispatch(StackActions.replace('Login'));
-							},
-						},
-					]);
-				});
-			} else {
-				Alert.alert('Validation Error', 'Confirm password is different');
-			}
-			console.log('login');
+		console.log(credential);
+		if (credential.UserName && credential.Email && credential.MobileNumber) {
+			const data = {...credential, UserId: credential.CustomerId};
+			dispatch({type: 'SET_LOADING', loading: true});
+			services.post('UpdateProfile', data).then((res) => {
+				dispatch({type: 'SET_LOADING', loading: false});
+				console.log('res', res);
+				if (`${res.status}` === '200') {
+					updateProfile({...credential});
+					Alert.alert('Success', res.res);
+				} else {
+					Alert.alert('Failure', res?.res || 'Failed to update');
+				}
+			});
 		} else {
 			Alert.alert('Validation Error', 'All fields are required');
 		}
-	}, [credential, navigation, dispatch]);
+	}, [credential, dispatch, updateProfile]);
 
-	const handleLogin = React.useCallback(() => {
-		navigation.dispatch(StackActions.replace('Login'));
-	}, [navigation]);
+	React.useEffect(() => {
+		if (profile) {
+			setCredential({...profile});
+		}
+	}, [profile]);
 
 	return (
-		<Page>
+		<ScrollablePageView
+			navigation={navigation}
+			header={<Header navigation={navigation} />}>
 			<View
 				style={[
 					commonStyles.pageStyle,
@@ -78,19 +85,21 @@ function ProfileView(props) {
 				]}>
 				<Input
 					style={styles.input}
-					value={profile.UserName}
+					value={credential.UserName}
+					disabled={true}
 					placeholder="Enter your name"
 					onChange={(value) => handleChange('UserName', value)}
 				/>
 				<Input
 					style={styles.input}
-					value={profile.Email}
+					value={credential.Email}
+					disabled={true}
 					placeholder="Enter your email id"
 					onChange={(value) => handleChange('Email', value)}
 				/>
 				<Input
 					style={styles.input}
-					value={profile.MobileNumber}
+					value={credential.MobileNumber}
 					placeholder="Phone number"
 					onChange={(value) => handleChange('MobileNumber', value)}
 				/>
@@ -100,7 +109,7 @@ function ProfileView(props) {
 					onPress={handleSignup}
 				/>
 			</View>
-		</Page>
+		</ScrollablePageView>
 	);
 }
 
@@ -108,7 +117,9 @@ const styles = StyleSheet.create({
 	container: {
 		display: 'flex',
 		flexDirection: 'column',
-		justifyContent: 'center',
+		paddingTop: '10%',
+		paddingBottom: '5%',
+		// height: '92%',
 	},
 	imageLogo: {
 		width: 64,
@@ -148,6 +159,24 @@ const styles = StyleSheet.create({
 	},
 	signupButton: {
 		marginTop: 10,
+	},
+	backButton: {
+		position: 'absolute',
+		left: 10,
+		top: 10,
+		padding: 10,
+	},
+	backButtonIcon: {
+		width: 10,
+		height: 16,
+	},
+	headerContainer: {
+		height: 'auto',
+		position: 'relative',
+		alignItems: 'center',
+		paddingTop: 10,
+		paddingBottom: 10,
+		backgroundColor: '#000F24',
 	},
 });
 

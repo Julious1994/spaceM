@@ -1,5 +1,13 @@
 import React, {useEffect} from 'react';
-import {View, Text, StyleSheet, Image, TouchableOpacity, Alert} from 'react-native';
+import {
+	View,
+	Text,
+	StyleSheet,
+	Image,
+	TouchableOpacity,
+	Alert,
+	ScrollView,
+} from 'react-native';
 import Typography from './../../components/Typography';
 import Input from './../../components/Input';
 import Button from './../../components/Button';
@@ -11,6 +19,8 @@ import BottomBar from '../BottomBar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useStateValue} from '../../store/store';
 import Service from '../../services/http';
+import {getInitial} from '../../utils';
+import {logout} from './Logout';
 
 const services = new Service();
 
@@ -23,8 +33,21 @@ function Profile(props) {
 		navigation.dispatch(StackActions.push('Transactions'));
 	}, [navigation]);
 
+	const handleChangePassword = React.useCallback(() => {
+		navigation.dispatch(StackActions.push('ChangePassword'));
+	}, [navigation]);
+
+	const handleSupport = React.useCallback(() => {
+		navigation.dispatch(StackActions.push('Support'));
+	}, [navigation]);
+
 	const handleProfile = React.useCallback(() => {
-		navigation.dispatch(StackActions.push('ProfileView', {profile}));
+		navigation.dispatch(
+			StackActions.push('ProfileView', {
+				profile,
+				updateProfile: (p) => setProfile(p),
+			}),
+		);
 	}, [navigation, profile]);
 
 	const handlePlan = React.useCallback(() => {
@@ -32,24 +55,22 @@ function Profile(props) {
 	}, [navigation]);
 
 	const handleLogout = React.useCallback(() => {
-		AsyncStorage.removeItem('user').then(() => {
-			dispatch({type: 'SET_USER', user: undefined});
-			navigation.dispatch(StackActions.replace('Login'));
-		});
-	}, [navigation, dispatch]);
+		logout(navigation);
+	}, [navigation]);
 
 	useEffect(() => {
-		const data = {
-			UserId: state.user.CustomerId,
-		};
-		services.post('GetUserDetailByID', data).then((res) => {
-			console.log('user data', res);
-			if (res.status === 200) {
-				setProfile({...res.res});
-			} else {
-				Alert.alert('Network error', 'Try again later');
-			}
-		});
+		if (state.user) {
+			const data = {
+				UserId: state.user.CustomerId,
+			};
+			services.post('GetUserDetailByID', data).then((res) => {
+				if (res.status === 200) {
+					setProfile({...res.res});
+				} else {
+					Alert.alert('Network error', 'Try again later');
+				}
+			});
+		}
 	}, [state.user]);
 	console.log(profile);
 	return (
@@ -61,11 +82,12 @@ function Profile(props) {
 					commonStyles.compactPageStyle,
 				]}>
 				<View style={styles.profileImageView}>
-					<Image
+					<Text style={styles.profileText}>{getInitial(profile.UserName)}</Text>
+					{/* <Image
 						style={styles.profileImage}
 						resizeMode="cover"
 						source={imageMapper.moviePhoto2.source}
-					/>
+					/> */}
 				</View>
 				<Typography variant="title3" style={styles.profileName}>
 					{profile.UserName}
@@ -99,45 +121,49 @@ function Profile(props) {
 					</View>
 				</LinearGradient>
 			</TouchableOpacity> */}
-				<TouchableOpacity style={styles.menuItemView} onPress={handleProfile}>
-					<Typography variant="body">Edit Profile</Typography>
-					<Image
-						source={imageMapper.rightArrow.source}
-						style={styles.rightArrow}
-					/>
-				</TouchableOpacity>
-				<TouchableOpacity style={styles.menuItemView}>
-					<Typography variant="body">Change Password</Typography>
-					<Image
-						source={imageMapper.rightArrow.source}
-						style={styles.rightArrow}
-					/>
-				</TouchableOpacity>
-				<TouchableOpacity
-					style={styles.menuItemView}
-					onPress={handleTransactions}>
-					<Typography variant="body">Transactions</Typography>
-					<Image
-						source={imageMapper.rightArrow.source}
-						style={styles.rightArrow}
-					/>
-				</TouchableOpacity>
-				<TouchableOpacity style={styles.menuItemView}>
-					<Typography variant="body">FAQ & Support</Typography>
-					<Image
-						source={imageMapper.rightArrow.source}
-						style={styles.rightArrow}
-					/>
-				</TouchableOpacity>
-				<TouchableOpacity
-					style={[styles.menuItemView, styles.noBottomBorder]}
-					onPress={handleLogout}>
-					<Typography variant="body">Sign out</Typography>
-					<Image
-						source={imageMapper.rightArrow.source}
-						style={styles.rightArrow}
-					/>
-				</TouchableOpacity>
+				<ScrollView style={{marginBottom: '9%'}}>
+					<TouchableOpacity style={styles.menuItemView} onPress={handleProfile}>
+						<Typography variant="body">Edit Profile</Typography>
+						<Image
+							source={imageMapper.rightArrow.source}
+							style={styles.rightArrow}
+						/>
+					</TouchableOpacity>
+					<TouchableOpacity
+						style={styles.menuItemView}
+						onPress={handleChangePassword}>
+						<Typography variant="body">Change Password</Typography>
+						<Image
+							source={imageMapper.rightArrow.source}
+							style={styles.rightArrow}
+						/>
+					</TouchableOpacity>
+					<TouchableOpacity
+						style={styles.menuItemView}
+						onPress={handleTransactions}>
+						<Typography variant="body">Transactions</Typography>
+						<Image
+							source={imageMapper.rightArrow.source}
+							style={styles.rightArrow}
+						/>
+					</TouchableOpacity>
+					<TouchableOpacity style={styles.menuItemView} onPress={handleSupport}>
+						<Typography variant="body">FAQ & Support</Typography>
+						<Image
+							source={imageMapper.rightArrow.source}
+							style={styles.rightArrow}
+						/>
+					</TouchableOpacity>
+					<TouchableOpacity
+						style={[styles.menuItemView, styles.noBottomBorder]}
+						onPress={handleLogout}>
+						<Typography variant="body">Sign out</Typography>
+						<Image
+							source={imageMapper.rightArrow.source}
+							style={styles.rightArrow}
+						/>
+					</TouchableOpacity>
+				</ScrollView>
 			</View>
 			<View style={styles.bottomBar}>
 				<BottomBar active={3} navigation={navigation} />
@@ -154,6 +180,17 @@ const styles = StyleSheet.create({
 	},
 	profileImageView: {
 		alignSelf: 'center',
+		borderWidth: 2,
+		borderColor: '#0879BE',
+		backgroundColor: '#01142E',
+		width: 76,
+		height: 76,
+		borderRadius: 76,
+		alignItems: 'center',
+		display: 'flex',
+		flexDirection: 'column',
+		justifyContent: 'center',
+		marginTop: 40,
 	},
 	profileImage: {
 		borderRadius: 76,
@@ -161,6 +198,10 @@ const styles = StyleSheet.create({
 		height: 76,
 		borderColor: '#159AEA',
 		borderWidth: 1,
+	},
+	profileText: {
+		color: '#fff',
+		fontSize: 32,
 	},
 	profileName: {
 		alignSelf: 'center',
@@ -171,6 +212,7 @@ const styles = StyleSheet.create({
 		width: 7,
 		height: 12,
 		tintColor: '#666F7B',
+		marginTop: 5,
 	},
 	menuItemView: {
 		display: 'flex',

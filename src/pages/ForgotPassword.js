@@ -28,7 +28,6 @@ function ForgotPassword(props) {
 				Email: email,
 			};
 			services.post('ForgotPassword', data).then((res) => {
-				console.log(res);
 				dispatch({type: 'SET_LOADING', loading: false});
 				if (res.status === 200) {
 					Alert.alert('Success', 'Email sent successfully. Check your email.', [

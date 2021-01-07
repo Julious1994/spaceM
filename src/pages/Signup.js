@@ -61,7 +61,6 @@ function Signup(props) {
 			} else {
 				Alert.alert('Validation Error', 'Confirm password is different');
 			}
-			console.log('login');
 		} else {
 			Alert.alert('Validation Error', 'All fields are required');
 		}
