@@ -46,12 +46,22 @@ function PaymentForm(props) {
 		// setEmail(value);
 	}, []);
 
-	const handlePayment = React.useCallback(() => {
+	const handlePaypalPayment = React.useCallback(() => {
 		// if (email) {
-		setStatus('success');
+		// setStatus('success');
 		// } else {
 		// }
+		// navigation.dispatch(StackActions.push('PaymentView'));
+		navigation.dispatch(StackActions.push('PaymentView', {video, gateway: 'Paypal'}));
 	}, []);
+
+	const handlePayuPayment = React.useCallback(() => {
+		// if (email) {
+		// setStatus('success');
+		// } else {
+		// }
+		navigation.dispatch(StackActions.push('PaymentView', {video, gateway: 'PayuMoney'}));
+	}, [video]);
 
 	const handleChangePlan = React.useCallback(() => {
 		navigation.dispatch(StackActions.replace('Plan'));
@@ -75,11 +85,18 @@ function PaymentForm(props) {
 		<ScrollablePageView
 			header={<Header navigation={navigation} />}
 			bottomBar={
-				<Button
-					style={styles.resetButton}
-					title="PAY NOW"
-					onPress={handlePayment}
-				/>
+				<React.Fragment>
+					<Button
+						style={styles.resetButton}
+						title="PAY with Paypal"
+						onPress={handlePaypalPayment}
+					/>
+					<Button
+						style={styles.resetButton}
+						title="PAY with PayU"
+						onPress={handlePayuPayment}
+					/>
+				</React.Fragment>
 			}>
 			<Popup open={showCoupen} onClose={() => setShowCoupen(false)} />
 			<View style={[commonStyles.pageStyle, styles.container]}>
