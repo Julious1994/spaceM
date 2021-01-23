@@ -11,6 +11,9 @@ export default {
 	logoIcon: {
 		source: require('./logoIcon.png'),
 	},
+	google: {
+		source: require('./google.png'),
+	},
 	searchIcon: {
 		source: require('./searchIcon.png'),
 	},
@@ -82,6 +85,9 @@ export default {
 	},
 	bell: {
 		source: require('./bell.png'),
+	},
+	bellRead: {
+		source: require('./bellRead.png'),
 	},
 	menu: {
 		source: require('./menu.png'),
