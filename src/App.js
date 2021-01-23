@@ -6,7 +6,7 @@ import Loader from './components/Loader';
 import routes from './routes';
 import {StateProvider} from './store/store';
 import {reducer, initialState} from './store/reducer';
-import Orientation from 'react-native-orientation';
+import Orientation from 'react-native-orientation-locker';
 
 const Stack = createStackNavigator();
 
