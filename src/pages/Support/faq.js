@@ -9,32 +9,8 @@ You can also download TV shows and movies to your iOS, Android, or Windows 10 de
 		description: `You can also download TV shows and movies to your iOS, Android, or Windows 10 device and watch without an internet connection.`,
 	},
 	{
-		title: 'how does spaceM work?',
-		description: `You can also download TV shows and movies to your iOS, Android, or Windows 10 device and watch without an internet connection.`,
-	},
-	{
-		title: 'Can I also watch instantly on any of these devices??',
-		description: `You can also download TV shows and movies to your iOS, Android, or Windows 10 device and watch without an internet connection.`,
-	},
-	{
-		title: 'how does spaceM work?',
-		description: `You can also download TV shows and movies to your iOS, Android, or Windows 10 device and watch without an internet connection.`,
-	},
-	{
-		title: 'Can I also watch instantly on any of these devices??',
-		description: `You can also download TV shows and movies to your iOS, Android, or Windows 10 device and watch without an internet connection.`,
-	},
-	{
-		title: 'how does spaceM work?',
-		description: `You can also download TV shows and movies to your iOS, Android, or Windows 10 device and watch without an internet connection.`,
-	},
-	{
-		title: 'Can I also watch instantly on any of these devices??',
-		description: `You can also download TV shows and movies to your iOS, Android, or Windows 10 device and watch without an internet connection.`,
-	},
-	{
-		title: 'how does spaceM work?',
-		description: `You can also download TV shows and movies to your iOS, Android, or Windows 10 device and watch without an internet connection.`,
+		title: 'How long can I watch a purchased movie',
+		description: `You will able to watch it for 24 hours.`,
 	},
 ];
 
