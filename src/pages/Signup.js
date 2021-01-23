@@ -91,7 +91,7 @@ function Signup(props) {
 				<Input
 					style={styles.input}
 					value={credential.Email}
-					placeholder="Enter your email id / phone number"
+					placeholder="Enter your email id"
 					onChange={(value) => handleChange('Email', value)}
 				/>
 				<Input

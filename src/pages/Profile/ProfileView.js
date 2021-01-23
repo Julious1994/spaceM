@@ -17,6 +17,8 @@ import Service from '../../services/http';
 import {StackActions} from '@react-navigation/native';
 import Page from '../../components/Page';
 import {useStateValue} from '../../store/store';
+import PhoneInput from 'react-native-phone-number-input';
+import Icon from "react-native-vector-icons/MaterialIcons";
 
 const services = new Service();
 
@@ -41,6 +43,8 @@ function ProfileView(props) {
 	const {user} = state;
 	const {profile = {}, updateProfile} = params;
 	const [credential, setCredential] = React.useState({});
+	const [value, setValue] = React.useState('');
+	const phoneInput = React.useRef(null);
 
 	const handleChange = React.useCallback((key, value) => {
 		setCredential((c) => {
@@ -97,12 +101,54 @@ function ProfileView(props) {
 					placeholder="Enter your email id"
 					onChange={(value) => handleChange('Email', value)}
 				/>
-				<Input
+				<PhoneInput
+					ref={phoneInput}
+					defaultValue={value}
+					defaultCode="IN"
+					layout="first"
+					containerStyle={[
+						{
+							width: '100%',
+							color: '#fff',
+							backgroundColor: '#031B3B',
+							height: 60,
+							borderRadius: 5,
+						},
+						styles.input,
+					]}
+					textContainerStyle={{
+						color: '#fff',
+						padding: 0,
+						margin: 0,
+						borderRadius: 5,
+						backgroundColor: '#031B3B',
+					}}
+					textInputStyle={{
+						backgroundColor: '#031B3B',
+						color: '#fff',
+						padding: 0,
+						margin: 0,
+					}}
+					renderDropdownImage={<Icon name="arrow-drop-down" size={18} color="#fff" />}
+					codeTextStyle={{color: '#fff'}}
+					flagButtonStyle={{backgroundColor: '#031B3B', borderRadius: 5}}
+					textInputProps={{style: {color: '#fff', height: 40}, placeholderTextColor: 'gray', placeholder: 'Phone number'}}
+					onChangeText={(text) => {
+						setValue(text);
+					}}
+					onChangeFormattedText={(text) => {
+						handleChange('MobileNumber', value);
+					}}
+					countryPickerProps={{
+						theme: {backgroundColor: '#031B3B', onBackgroundTextColor: '#fff', filterPlaceholderTextColor: '#fff', primaryColorVariant: '#'}
+					}}
+				/>
+				{/* <Input
 					style={styles.input}
 					value={credential.MobileNumber}
 					placeholder="Phone number"
 					onChange={(value) => handleChange('MobileNumber', value)}
-				/>
+				/> */}
 				<Button
 					style={styles.signupButton}
 					title="Save"
