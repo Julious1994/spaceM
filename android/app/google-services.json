@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "206403307836",
+    "project_id": "spacem-b03ab",
+    "storage_bucket": "spacem-b03ab.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:206403307836:android:168cf0a37bab5ab94ff639",
+        "android_client_info": {
+          "package_name": "com.spacem"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "206403307836-8uj38u784op03vrjf0h7oehvfje9loaq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.spacem",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "206403307836-68kbtfcasp038nrjhsp334hf8a3jv9p7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAeUppt-zeHyjGrxGBeUIVrONkonCwFkzk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "206403307836-68kbtfcasp038nrjhsp334hf8a3jv9p7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
