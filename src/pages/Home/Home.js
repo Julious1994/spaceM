@@ -31,6 +31,8 @@ import {getUri, isLandscape} from '../../utils';
 
 const services = new Service();
 const getBannerWidth = () => Dimensions.get('window').width;
+const ScreenWidth = Dimensions.get('window').width;
+const moreVideoLength = (ScreenWidth - 54) / 3;
 
 const BannerHeight = 260;
 const tabs = [
@@ -38,9 +40,11 @@ const tabs = [
 	{title: 'Movies'},
 	{title: 'Series'},
 	{title: 'New'},
+	{title: 'Free'},
 ];
 
 function Header(props) {
+	const bellImage = props.hasUnread ? 'bell' : 'bellRead';
 	return (
 		<React.Fragment>
 			<View style={styles.headerContainer}>
@@ -51,7 +55,7 @@ function Header(props) {
 				<TouchableOpacity
 					style={styles.bell}
 					onPress={props.handleNotification}>
-					<Image source={imageMapper.bell.source} style={styles.bellImage} />
+					<Image source={imageMapper[bellImage].source} style={styles.bellImage} />
 				</TouchableOpacity>
 			</View>
 			<View style={[commonStyles.compactPageStyle, styles.tabContainer]}>
@@ -77,7 +81,9 @@ function Home(props) {
 	const [releaseList, setReleaseList] = React.useState([]);
 	const [orientation, setOrientation] = React.useState('portrait');
 	const [bannerWidth, setBannerWidth] = React.useState(getBannerWidth());
-
+	const [freeMovieList, setFreeMovieList] = React.useState([]);
+	const [seriesList, setSeriesList] = React.useState([]);
+	const [movieList, setMovieList] = React.useState([]);
 	const [videoList, setVideoList] = React.useState([]);
 	const data = [...Array(10).keys()];
 	const banner = [...Array(4).keys()];
@@ -137,7 +143,6 @@ function Home(props) {
 				`WatchListVideo?CustomerId=${state.user.CustomerId}`,
 			);
 			dispatch({type: 'SET_WATCHLIST', data: [...res]});
-
 		}
 	}, [state.user, dispatch]);
 
@@ -203,9 +208,68 @@ function Home(props) {
 		}
 	}, [dispatch, state.user]);
 
+	const fetchFreeMovie = React.useCallback(() => {
+		setLoading(true);
+		services.get('FreeMovieList').then((res) => {
+			setLoading(false);
+			setFreeMovieList([...res]);
+			console.log('FreeMoviewList', res);
+		});
+	}, []);
+
+	const fetchAllMovie = React.useCallback(() => {
+		setLoading(true);
+		services.get('AllMovieList').then((res) => {
+			setLoading(false);
+			console.log('All MoviewList', res);
+			setMovieList([...res]);
+		});
+	}, []);
+
+	const fetchSeries = React.useCallback(() => {
+		setLoading(true);
+		services.get('WebSeries').then((res) => {
+			setLoading(false);
+			console.log('Webseries list', res);
+			setSeriesList([...res]);
+		});
+	}, []);
+
+	const fetchNotification = React.useCallback(() => {
+		console.log('sssss', state.user);
+		if (state.user.CustomerId) {
+			services
+				.get(`DisplayNotification?CustomerId=${state.user.CustomerId}`)
+				.then((res) => {
+					dispatch({type: 'SET_NOTIFICATION', data: [...res]});
+					console.log('notification list', res);
+				});
+		}
+	}, [state.user]);
+
+	React.useEffect(() => {
+		switch (activeTab) {
+			case 1: {
+				fetchAllMovie();
+				break;
+			}
+			case 2: {
+				fetchSeries();
+				break;
+			}
+			case 4: {
+				fetchFreeMovie();
+				break;
+			}
+			default:
+				break;
+		}
+	}, [activeTab]);
+
 	React.useEffect(() => {
 		async function fetch() {
 			setLoading(true);
+			fetchNotification();
 			await fetchData();
 			await fetchWatchList();
 			await fetchNewRelease();
@@ -238,6 +302,209 @@ function Home(props) {
 		};
 	}, []);
 
+	const renderFreeMovie = () => {
+		if (loading) {
+			return (
+				<ActivityIndicator
+					size="large"
+					color="#159AEA"
+					style={commonStyles.loader}
+				/>
+			);
+		}
+		return (
+			<View style={[styles.moreViewContainer]}>
+				{freeMovieList.map((v, i) => (
+					<TouchableOpacity key={i} onPress={() => handleVideoClick(v)}>
+						<Image
+							source={{
+								uri: `https://spacem.azurewebsites.net/${v.ThumbnailPath}`,
+							}}
+							resizeMode="stretch"
+							style={[styles.videoThumbnail, {width: moreVideoLength}]}
+						/>
+					</TouchableOpacity>
+				))}
+			</View>
+		);
+	};
+
+	const renderAllMovie = () => {
+		if (loading) {
+			return (
+				<ActivityIndicator
+					size="large"
+					color="#159AEA"
+					style={commonStyles.loader}
+				/>
+			);
+		}
+		return (
+			<View style={[styles.moreViewContainer]}>
+				{movieList.map((v, i) => (
+					<TouchableOpacity key={i} onPress={() => handleVideoClick(v)}>
+						<Image
+							resizeMode="stretch"
+							source={{
+								uri: `https://spacem.azurewebsites.net/${v.ThumbnailPath}`,
+							}}
+							style={[styles.videoThumbnail, {width: moreVideoLength}]}
+						/>
+					</TouchableOpacity>
+				))}
+			</View>
+		);
+	};
+
+	const renderNew = () => {
+		if (loading) {
+			return (
+				<ActivityIndicator
+					size="large"
+					color="#159AEA"
+					style={commonStyles.loader}
+				/>
+			);
+		}
+		return (
+			<View style={[styles.moreViewContainer]}>
+				{releaseList.map((v, i) => (
+					<TouchableOpacity key={i} onPress={() => handleVideoClick(v)}>
+						<Image
+							source={{
+								uri: `https://spacem.azurewebsites.net/${v.ThumbnailPath}`,
+							}}
+							resizeMode="stretch"
+							style={[styles.videoThumbnail, {width: moreVideoLength}]}
+						/>
+					</TouchableOpacity>
+				))}
+			</View>
+		);
+	};
+
+	const renderSeries = () => {
+		if (loading) {
+			return (
+				<ActivityIndicator
+					size="large"
+					color="#159AEA"
+					style={commonStyles.loader}
+				/>
+			);
+		}
+		return (
+			<View style={[styles.moreViewContainer]}>
+				{seriesList.map((v, i) => (
+					<TouchableOpacity key={i} onPress={() => handleVideoClick(v)}>
+						<Image
+							source={{
+								uri: `https://spacem.azurewebsites.net/${v.ThumbnailPath}`,
+							}}
+							resizeMode="stretch"
+							style={[styles.videoThumbnail, {width: moreVideoLength}]}
+						/>
+					</TouchableOpacity>
+				))}
+			</View>
+		);
+	};
+
+	const renderHome = () => (
+		<React.Fragment>
+			<Slider
+				autoplay
+				autoplayTimeout={5000}
+				loop
+				index={0}
+				pageSize={bannerWidth}>
+				{bannerList.map((b, i) => (
+					<ImageBackground key={i} source={getUri(b)} style={[styles.banner]}>
+						<Typography variant="title1">{b.Title}</Typography>
+						<Typography variant="description">{`Geners: ${b.Genre}`}</Typography>
+						<View style={styles.bannerActionButton}>
+							<TouchableOpacity
+								style={styles.actionItem}
+								onPressIn={() => handleVideoClick(b)}>
+								<Image
+									source={imageMapper.playButton.source}
+									style={styles.playButtonImage}
+									resizeMode="contain"
+								/>
+							</TouchableOpacity>
+							<TouchableOpacity
+								onPressIn={() => handleAddWatchList(b)}
+								style={[styles.actionItem, styles.watchListIcon]}>
+								<Image
+									source={imageMapper.plusRound.source}
+									style={styles.actionImage}
+								/>
+							</TouchableOpacity>
+						</View>
+					</ImageBackground>
+				))}
+			</Slider>
+
+			<HorizontalList
+				type="historic"
+				data={state.continueWatchingList}
+				title="Continue Watching"
+				onPress={handleContinueVideoClick}
+			/>
+
+			<HorizontalList
+				data={state.watchList}
+				title="Watchlist"
+				onPress={handleVideoClick}
+			/>
+			<HorizontalList
+				data={bannerList}
+				title="Trending Now"
+				onPress={handleVideoClick}
+			/>
+			<HorizontalList
+				data={releaseList}
+				title="New Release"
+				onPress={handleVideoClick}
+			/>
+			<HorizontalList
+				data={upcomingList}
+				title="Upcoming"
+				onPress={handleVideoClick}
+			/>
+			<HorizontalList
+				data={top10List}
+				title="Top 10 on SpaceM"
+				onPress={handleVideoClick}
+			/>
+			{videoList.map((videoView, i) => (
+				<HorizontalList
+					key={i}
+					data={videoView.videos}
+					title={`${videoView.CategoryName}`}
+					onPress={handleVideoClick}
+				/>
+			))}
+			{/* <Image
+					resizeMode="contain"
+					source={imageMapper.featureMoview.source}
+					style={styles.featureMovieView}
+				/> */}
+			{/* <HorizontalList
+					data={data}
+					title="Romance Movies"
+					onPress={handleVideoClick}
+				/> */}
+			{loading && (
+				<ActivityIndicator
+					color="#159AEA"
+					style={commonStyles.loader}
+					size="large"
+				/>
+			)}
+		</React.Fragment>
+	);
+
 	return (
 		<ScrollablePageView
 			navigation={navigation}
@@ -247,100 +514,16 @@ function Home(props) {
 					handleTab={handleTab}
 					handleMenu={handleMenu}
 					handleNotification={handleNotification}
+					hasUnread={state.notificationList.findIndex(n => n.IsRead === false) !== -1}
 				/>
 			}
 			bottomBar={<BottomBar active={0} navigation={navigation} />}>
 			<View style={[commonStyles.pageStyle]}>
-				<Slider
-					autoplay
-					autoplayTimeout={5000}
-					loop
-					index={0}
-					pageSize={bannerWidth}>
-					{bannerList.map((b, i) => (
-						<ImageBackground key={i} source={getUri(b)} style={[styles.banner]}>
-							<Typography variant="title1">{b.Title}</Typography>
-							<Typography variant="description">{`Geners: ${b.Genre}`}</Typography>
-							<View style={styles.bannerActionButton}>
-								<TouchableOpacity
-									style={styles.actionItem}
-									onPressIn={() => handleVideoClick(b)}>
-									<Image
-										source={imageMapper.playButton.source}
-										style={styles.playButtonImage}
-										resizeMode="contain"
-									/>
-								</TouchableOpacity>
-								<TouchableOpacity
-									onPressIn={() => handleAddWatchList(b)}
-									style={[styles.actionItem, styles.watchListIcon]}>
-									<Image
-										source={imageMapper.plusRound.source}
-										style={styles.actionImage}
-									/>
-								</TouchableOpacity>
-							</View>
-						</ImageBackground>
-					))}
-				</Slider>
-
-				<HorizontalList
-					type="historic"
-					data={state.continueWatchingList}
-					title="Continue Watching"
-					onPress={handleContinueVideoClick}
-				/>
-
-				<HorizontalList
-					data={state.watchList}
-					title="Watchlist"
-					onPress={handleVideoClick}
-				/>
-				<HorizontalList
-					data={bannerList}
-					title="Trending Now"
-					onPress={handleVideoClick}
-				/>
-				<HorizontalList
-					data={releaseList}
-					title="New Release"
-					onPress={handleVideoClick}
-				/>
-				<HorizontalList
-					data={upcomingList}
-					title="Upcoming"
-					onPress={handleVideoClick}
-				/>
-				<HorizontalList
-					data={top10List}
-					title="Top 10 on SpaceM"
-					onPress={handleVideoClick}
-				/>
-				{videoList.map((videoView, i) => (
-					<HorizontalList
-						key={i}
-						data={videoView.videos}
-						title={`${videoView.CategoryName} Movies`}
-						onPress={handleVideoClick}
-					/>
-				))}
-				{/* <Image
-					resizeMode="contain"
-					source={imageMapper.featureMoview.source}
-					style={styles.featureMovieView}
-				/> */}
-				{/* <HorizontalList
-					data={data}
-					title="Romance Movies"
-					onPress={handleVideoClick}
-				/> */}
-				{loading && (
-					<ActivityIndicator
-						color="#159AEA"
-						style={commonStyles.loader}
-						size="large"
-					/>
-				)}
+				{activeTab === 0 && renderHome()}
+				{activeTab === 1 && renderAllMovie()}
+				{activeTab === 2 && renderSeries()}
+				{activeTab === 3 && renderNew()}
+				{activeTab === 4 && renderFreeMovie()}
 			</View>
 		</ScrollablePageView>
 	);
@@ -417,6 +600,22 @@ const styles = StyleSheet.create({
 	bellImage: {
 		width: 16,
 		height: 18,
+	},
+	moreViewContainer: {
+		// backgroundColor: 'red',
+		display: 'flex',
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		marginLeft: 15,
+		marginRight: 15,
+		// justifyContent: 'space-around',
+	},
+	videoThumbnail: {
+		height: 140,
+		width: 102,
+		marginTop: 10,
+		marginLeft: 4,
+		marginRight: 4,
 	},
 });
 
