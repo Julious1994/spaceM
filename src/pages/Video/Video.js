@@ -19,8 +19,8 @@ import Typography from '../../components/Typography';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Slider from '@react-native-community/slider';
 import moment from 'moment';
-import Orientation from 'react-native-orientation';
-import convertToProxyURL from 'react-native-video-cache';
+import Orientation from 'react-native-orientation-locker';
+import VideoModal from './VideoModal';
 
 const services = new Service();
 
@@ -74,6 +74,9 @@ function VideoScreen(props) {
 	const [seekTime, setSeekTime] = React.useState(0);
 	const [duration, setDuration] = React.useState(0);
 	const [orientation, setOrientation] = React.useState('portrait');
+	const [selectedQuality, setSelectedQuality] = React.useState();
+	const [isQualityChanged, setIsQualityChanged] = React.useState(false);
+	const [qualityView, setQualityView] = React.useState(false);
 
 	const player = React.useRef();
 	const onBuffer = React.useCallback((e) => {
@@ -119,10 +122,18 @@ function VideoScreen(props) {
 			setPaused(false);
 			if (!isSeek && player.current && videoDetails.WatchTime) {
 				setIsSeek(true);
-				player.current.seek(Number(videoDetails.WatchTime));
+				if(videoDetails.WatchTime) {
+					player.current.seek(Number(videoDetails.WatchTime));
+				}
 			}
+			console.log(isQualityChanged);
+			if(isQualityChanged) {
+				setIsQualityChanged(false);
+				player.current.seek(Number(currentTime));
+			}
+			
 		},
-		[isSeek, player, videoDetails],
+		[isSeek, player, videoDetails, currentTime, isQualityChanged],
 	);
 
 	const handleHideControl = React.useCallback(() => {
@@ -194,38 +205,67 @@ function VideoScreen(props) {
 		navigation.goBack();
 	}, [navigation, player]);
 
+	const handleBitRate = React.useCallback((value) => {
+		console.log(value);
+		setSelectedQuality(value);	
+		setIsQualityChanged(true);
+		setQualityView(false);
+	}, []);
+
+	const handleQualityView = React.useCallback(() => {
+		setQualityView(true);
+	})
+
+	const closeQualityView = React.useCallback(() => {
+		setQualityView(false);
+	})
+
 	React.useEffect(() => {
 		setLoading(true);
-		services.get(`DisplayVideoDetail?VideoId=${video.VideoId}`).then((res) => {
+		services.get(`DisplayVideoDetail?VideoId=${video.VideoId}&CustomerId=${state.user.CustomerId}`).then((res) => {
+			console.log(res);
 			setLoading(false);
-			if (res && res[0]) {
-				setVideoDetails({...res[0], ...video});
+			if (res && res.Body && res.VideoQualityList) {
+				setVideoDetails({...res.Body[0], VideoQualityList: [...res.VideoQualityList],ExpireDetail: {...res.ExpireDetail}, ...video});
+				setSelectedQuality(res.VideoQualityList[0]);
 			}
 		});
-	}, [video]);
+	}, [video, state.user]);
 
 	// React.useEffect(() => {
 	// 	if (player.current && videoDetails && videoDetails.WatchTime && !isSeek) {
 	// 		setIsSeek(true);
 	// 		console.log(player.current.seek);
-	// 		player.current.seek(Number(videoDetails.WatchTime));
+	// 		player.current.seek(Nulandscapember(videoDetails.WatchTime));
 	// 	}
 	// }, [player, videoDetails, isSeek]);
 
 	useEffect(() => {
-		let orientationEvent = Dimensions.addEventListener('change', () => {
-			setOrientation(isLandscape() ? 'landscape' : 'portrait');
-		});
+		console.log('kkkk', Orientation.getInitialOrientation().toLowerCase())
+		setOrientation(Orientation.getInitialOrientation().toLowerCase());
+		let _onOrientationDidChange = (orientation) => {
+			console.log('cccc', Orientation.getInitialOrientation().toLowerCase());
+			setOrientation(Orientation.getInitialOrientation().toLowerCase())
+		  };
+		Orientation.addOrientationListener(_onOrientationDidChange);
+
 		Orientation.unlockAllOrientations();
 		return () => {
 			StatusBar.setHidden(false);
-			Dimensions.removeEventListener('change');
+			Orientation.removeOrientationListener(_onOrientationDidChange);
 			Orientation.lockToPortrait();
+			player.current = null;
 		};
 	}, []);
 
-	if (loading || !videoDetails?.VideoPath) {
-		console.log(videoDetails?.VideoPath, videoDetails);
+	let videoPath = selectedQuality?.VideoPath;
+	if(videoDetails?.ExpireDetail && `${videoDetails?.ExpireDetail?.IsValid}` === 'false') {
+		console.log('this is trailer', videoDetails);
+		videoPath = videoDetails.VideoTrailerPath;
+	} 
+
+	console.log({videoPath, loading});
+	if (loading || (!videoPath)) {
 		return (
 			<ActivityIndicator
 				size="large"
@@ -234,8 +274,11 @@ function VideoScreen(props) {
 			/>
 		);
 	}
-	console.log(`http://spacem.techymau.games/${videoDetails?.VideoPath}`);
+	// console.log(`https://spacem.azurewebsites.net/${videoDetails?.VideoPath}`);
 	const landscape = orientation === 'landscape';
+	// console.log('landscape', selectedQuality);
+	// console.log(selectedQuality);
+	
 	return (
 		<React.Fragment>
 			<StatusBar hidden />
@@ -249,13 +292,14 @@ function VideoScreen(props) {
 					backgroundColor: 'black',
 				}}>
 				<Video
-					cookiePolicy="original"
-					source={{uri: 'https://www.sample-videos.com/video123/mp4/240/big_buck_bunny_240p_1mb.mp4' }}
+					source={{uri: `https://spacem.azurewebsites.net${videoPath}` }}
 					ref={(ref) => {
 						// console.log(ref);
 						player.current = ref;
 					}} // Store reference
 					navigator={props.navigation}
+					reportBandwidth={true}
+					onBandwidthUpdate={(data) => console.log('bandwidth', data)}
 					onEnd={handleEnd}
 					onLoad={handleLoad}
 					onBuffer={onBuffer} // Callback when remote video is buffering
@@ -282,8 +326,9 @@ function VideoScreen(props) {
 						{
 							title: 'Spanish Subtitles',
 							language: 'es',
-							type: TextTrackType.SRT, // "application/x-subrip"
-							uri: 'http://carinait.net/gamesrt.srt',
+							type: TextTrackType.VTT, // "application/x-subrip"
+							// uri: `https://spacem.azurewebsites.net${videoDetails.SubTitlePath}`
+							uri: 'http://carinait.net/projects/spacemvtt/View_From_A_Blue_Moon_Trailer-HD.en.vtt',
 						},
 					]}
 				/>
@@ -339,10 +384,20 @@ function VideoScreen(props) {
 									</TouchableOpacity>
 								</View>
 							)}
+							<TouchableOpacity style={{position: 'absolute', bottom: 10, right: 20, paddingRight: 30}} onPress={handleQualityView}>
+								<Typography variant="title3">Change Quality</Typography>
+							</TouchableOpacity>
 						</React.Fragment>
 					)}
 				</React.Fragment>
 			</TouchableOpacity>
+			{qualityView && <VideoModal 
+				open={qualityView}
+				onQualityChange={handleBitRate}
+				list={videoDetails.VideoQualityList}
+				selectedQuality={selectedQuality}
+				onClose={closeQualityView}
+			/>}
 		</React.Fragment>
 	);
 }
@@ -400,7 +455,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		width: '100%',
 		display: 'flex',
-		bottom: 20,
+		bottom: 30,
 		flexDirection: 'row',
 	},
 	sliderView: {

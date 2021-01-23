@@ -35,7 +35,7 @@ const moreVideoLength = (ScreenWidth - 54) / 3;
 
 const getUri = (item, i) => {
 	return item.ThumbnailPath
-		? {uri: `http://spacem.techymau.games/${item.ThumbnailPath}`}
+		? {uri: `https://spacem.azurewebsites.net/${item.ThumbnailPath}`}
 		: imageMapper.landscapeMovie.source;
 };
 
@@ -44,13 +44,15 @@ function VideoDetail(props) {
 	const {params = {}} = route;
 	const [state, dispatch] = useStateValue();
 	const {user, watchList} = state;
-	const {video: videoDetails = {}, videos: moreVideos = []} = params;
+	const {video: videoParamDetails = {}, videos: moreVideos = []} = params;
 	const data = [...Array(15).keys()];
 	const [activeTab, setActiveTab] = React.useState(0);
 	const [inWatchList, setInWatchList] = React.useState(false);
 	const [relatedLoading, setRelatedLoading] = React.useState(false);
 	const [relatedList, setRelatedList] = React.useState([]);
 	const [shareLoading, setShareLoading] = React.useState(false);
+	const [loading, setLoading] = React.useState(true);
+	const [videoDetails, setVideoDetails] = React.useState({});
 
 	const handleTabClick = React.useCallback((i) => {
 		setActiveTab(i);
@@ -83,10 +85,19 @@ function VideoDetail(props) {
 	const handleBack = React.useCallback(() => {
 		navigation.goBack();
 	}, [navigation]);
-	const BuyButton = ({onPress, isPaid, amount}) => {
+	const BuyButton = ({onPress, isPaid, amount, expires}) => {
 		let title = 'Play Now';
-		if (isPaid === 'Paid') {
+		if (`${isPaid}` === 'false' && Number(amount) > 0) {
 			title = `Buy Movie $${amount}`;
+		}
+		const getTime = (seconds) => {
+			if(seconds > 3600) {
+				return `${(seconds/3600).toFixed(0)} hour`;
+			} else if(seconds > 60) {
+				return `${(seconds / 60).toFixed(0)} mins`;
+			} else {
+				return `${(seconds).toFixed(0)} sec`;
+			}
 		}
 		return (
 			<LinearGradiant
@@ -96,7 +107,9 @@ function VideoDetail(props) {
 					'rgba(1, 20, 46, 0.74)',
 					'rgba(1, 20, 46, 0.9)',
 				]}>
-				<Button title={title} onPress={onPress} />
+				<Button textStyle={{fontSize: 18}} title={title} onPress={onPress}>
+					{expires?.TimeRemainingInSec && <Typography variant="description" style={styles.remainTimeStyle}>(expires in {getTime(Number(expires?.TimeRemainingInSec || 0))})</Typography>}
+				</Button>
 			</LinearGradiant>
 		);
 	};
@@ -147,7 +160,7 @@ function VideoDetail(props) {
 							<TouchableOpacity key={i} onPress={() => handleVideoClick(v)}>
 								<Image
 									source={{
-										uri: `http://spacem.techymau.games/${v.ThumbnailPath}`,
+										uri: `https://spacem.azurewebsites.net/${v.ThumbnailPath}`,
 									}}
 									style={[styles.videoThumbnail, {width: moreVideoLength}]}
 								/>
@@ -208,7 +221,7 @@ function VideoDetail(props) {
 	}, [navigation, videoDetails]);
 
 	const handleBuy = React.useCallback(() => {
-		if (videoDetails.IsPaid === 'Paid') {
+		if (!videoDetails.ExpireDetail?.IsValid && Number(videoDetails.Amount) > 0) {
 			navigation.dispatch(
 				StackActions.push('PaymentForm', {video: {...videoDetails}}),
 			);
@@ -237,17 +250,17 @@ function VideoDetail(props) {
 	}, [videoDetails, user, dispatch, state.user]);
 
 	const handleShare = React.useCallback(() => {
-		const type = videoDetails.ThumbnailPath.split('.')[1];
+		const type = videoDetails.ThumbnailPath?.split('.')[1];
 		setShareLoading(true);
 		sharePDFWithAndroid(
-			`http://spacem.techymau.games${videoDetails.ThumbnailPath}`,
+			`https://spacem.azurewebsites.net${videoDetails?.ThumbnailPath}`,
 			`image/${type === 'jpg' ? 'jpeg' : type}`,
 		).then((base64Data) => {
 			setShareLoading(false);
 			const options = {
 				title: 'Share movie',
 				message: `Please watch this movie
-				Download app from here: ${'http://spacem.techymau.games'}`,
+				Download app from here: ${'https://spacem.azurewebsites.net'}`,
 				url: base64Data,
 				subject: 'share it',
 			};
@@ -258,122 +271,142 @@ function VideoDetail(props) {
 		});
 	}, [videoDetails]);
 
+	React.useEffect(() => {
+		setLoading(true);
+		services.get(`DisplayVideoDetail?VideoId=${videoParamDetails.VideoId}&CustomerId=${state.user.CustomerId}`).then((res) => {
+			console.log(res);
+			setLoading(false);
+			if (res && res.Body && res.VideoQualityList) {
+				setVideoDetails({...res.Body[0], ExpireDetail: {...res.ExpireDetail}, VideoQualityList: [...res.VideoQualityList]});
+			}
+		});
+	}, [videoParamDetails, state.user, videoParamDetails]);
+
 	return (
 		<React.Fragment>
 			{shareLoading && <LoaderView />}
 			<ScrollablePageView style={{marginBottom: 96}}>
-				<ImageBackground
-					style={styles.imgBackground}
-					resizeMode="stretch"
-					source={getUri(videoDetails)}>
-					<TouchableOpacity style={styles.backButton} onPress={handleBack}>
-						<Image
-							source={imageMapper.leftArrow.source}
-							style={styles.backButtonIcon}
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity onPress={playVideo}>
-						<Image
-							source={imageMapper.roundPlay.source}
-							style={styles.roundPlay}
-						/>
-					</TouchableOpacity>
-				</ImageBackground>
-				<View style={[commonStyles.compactPageStyle]}>
-					<Typography variant="title1">{videoDetails.Title}</Typography>
-					<View style={styles.movieSmallInfo}>
-						<Typography variant="tiny1">{videoDetails.Genre}</Typography>
-						<View style={styles.dotSeparator} />
-						<Typography variant="tiny1">
-							{moment(videoDetails.LaunchDate).format('yyyy')}
-						</Typography>
-						<View style={styles.dotSeparator} />
-						<Typography variant="tiny1">2h 49min</Typography>
-					</View>
-					<Typography variant="description">
-						{videoDetails.Description ||
-							`Todd Phillips helms a gritty origin story starring Joaquin Phoenix
-							and Robert De Niro that centers around the iconic arch nemesis in an
-							original, standalone story not seen before on screen. Phillips'
-							exploration of Arthur Fleck, a man disregarded by society, is not
-							only a harsh character study, but also a broader cautionary tale.`}
-					</Typography>
-					<View style={styles.actionView}>
-						{inWatchList ? (
-							<TouchableOpacity style={styles.actionItem} onPress={removeItem}>
-								<View style={styles.closeView}>
-									<Icon name="close" size={16} color="#fff" />
-								</View>
-								<Typography
-									variant="tiny2"
-									style={[
-										styles.actionText,
-										inWatchList && styles.activeWathcListText,
-									]}>
-									Watchlist
-								</Typography>
-							</TouchableOpacity>
-						) : (
-							<TouchableOpacity
-								style={styles.actionItem}
-								onPress={handleAddWatchList}>
-								<Image
-									source={imageMapper.plusRound.source}
-									style={[
-										styles.actionImage,
-										inWatchList && styles.activeWathcListImage,
-									]}
-								/>
-								<Typography
-									variant="tiny2"
-									style={[
-										styles.actionText,
-										inWatchList && styles.activeWathcListText,
-									]}>
-									Watchlist
-								</Typography>
-							</TouchableOpacity>
-						)}
-						{/* <TouchableOpacity style={styles.actionItem} onPress={handleRate}>
+				{
+					loading ? 
+					<ActivityIndicator size="large" color="#159AEA" style={commonStyles.loader} />
+					:
+				
+				<React.Fragment>
+
+					<ImageBackground
+						style={styles.imgBackground}
+						resizeMode="stretch"
+						source={getUri(videoDetails)}>
+						<TouchableOpacity style={styles.backButton} onPress={handleBack}>
 							<Image
-								source={imageMapper.favourite.source}
-								style={styles.actionImage}
+								source={imageMapper.leftArrow.source}
+								style={styles.backButtonIcon}
 							/>
-							<Typography variant="tiny2" style={styles.actionText}>
-								Rate
-							</Typography>
-						</TouchableOpacity> */}
-						<TouchableOpacity style={styles.actionItem} onPress={handleShare}>
-							<Image
-								source={imageMapper.share.source}
-								style={styles.actionImage}
-							/>
-							<Typography variant="tiny2" style={styles.actionText}>
-								Share
-							</Typography>
 						</TouchableOpacity>
+						<TouchableOpacity onPress={playVideo}>
+							<Image
+								source={imageMapper.roundPlay.source}
+								style={styles.roundPlay}
+							/>
+						</TouchableOpacity>
+					</ImageBackground>
+					<View style={[commonStyles.compactPageStyle]}>
+						<Typography variant="title1">{videoDetails.Title}</Typography>
+						<View style={styles.movieSmallInfo}>
+							<Typography variant="tiny1">{videoDetails.Genre}</Typography>
+							<View style={styles.dotSeparator} />
+							<Typography variant="tiny1">
+								{moment(videoDetails.LaunchDate).format('yyyy')}
+							</Typography>
+							<View style={styles.dotSeparator} />
+							<Typography variant="tiny1">2h 49min</Typography>
+						</View>
+						<Typography variant="description">
+							{videoDetails.Description ||
+								`Todd Phillips helms a gritty origin story starring Joaquin Phoenix
+								and Robert De Niro that centers around the iconic arch nemesis in an
+								original, standalone story not seen before on screen. Phillips'
+								exploration of Arthur Fleck, a man disregarded by society, is not
+								only a harsh character study, but also a broader cautionary tale.`}
+						</Typography>
+						<View style={styles.actionView}>
+							{inWatchList ? (
+								<TouchableOpacity style={styles.actionItem} onPress={removeItem}>
+									<View style={styles.closeView}>
+										<Icon name="close" size={16} color="#fff" />
+									</View>
+									<Typography
+										variant="tiny2"
+										style={[
+											styles.actionText,
+											inWatchList && styles.activeWathcListText,
+										]}>
+										Watchlist
+									</Typography>
+								</TouchableOpacity>
+							) : (
+								<TouchableOpacity
+									style={styles.actionItem}
+									onPress={handleAddWatchList}>
+									<Image
+										source={imageMapper.plusRound.source}
+										style={[
+											styles.actionImage,
+										]}
+									/>
+									<Typography
+										variant="tiny2"
+										style={[
+											styles.actionText,
+											inWatchList && styles.activeWathcListText,
+										]}>
+										Watchlist
+									</Typography>
+								</TouchableOpacity>
+							)}
+							{/* <TouchableOpacity style={styles.actionItem} onPress={handleRate}>
+								<Image
+									source={imageMapper.favourite.source}
+									style={styles.actionImage}
+								/>
+								<Typography variant="tiny2" style={styles.actionText}>
+									Rate
+								</Typography>
+							</TouchableOpacity> */}
+							<TouchableOpacity style={styles.actionItem} onPress={handleShare}>
+								<Image
+									source={imageMapper.share.source}
+									style={styles.actionImage}
+								/>
+								<Typography variant="tiny2" style={styles.actionText}>
+									Share
+								</Typography>
+							</TouchableOpacity>
+						</View>
 					</View>
-				</View>
-				<View style={styles.tabContainer}>
-					<Tab
-						title="MORE LIKE THIS"
-						active={activeTab === 0}
-						onPress={() => handleTabClick(0)}
-					/>
-					<Tab
-						title="MORE DETAILS"
-						active={activeTab === 1}
-						onPress={() => handleTabClick(1)}
-					/>
-				</View>
-				{activeTab === 0 && renderMoreView()}
-				{activeTab === 1 && renderInfoView()}
+					<View style={styles.tabContainer}>
+						<Tab
+							title="MORE LIKE THIS"
+							active={activeTab === 0}
+							onPress={() => handleTabClick(0)}
+						/>
+						<Tab
+							title="MORE DETAILS"
+							active={activeTab === 1}
+							onPress={() => handleTabClick(1)}
+						/>
+					</View>
+					{activeTab === 0 && renderMoreView()}
+					{activeTab === 1 && renderInfoView()}
+				</React.Fragment>
+				}
 			</ScrollablePageView>
-			<BuyButton
+			{!loading && <BuyButton
 				onPress={handleBuy}
-				isPaid={videoDetails.IsPaid}
+				isPaid={videoDetails.ExpireDetail?.IsValid}
+				expires={videoDetails.ExpireDetail}
 				amount={videoDetails.Amount}
-			/>
+			/>}
 		</React.Fragment>
 	);
 }
@@ -496,7 +529,7 @@ const styles = StyleSheet.create({
 		paddingRight: 7,
 	},
 	activeWathcListImage: {
-		tintColor: '#159AEA',
+		// tintColor: '#159AEA',
 	},
 	activeWathcListText: {
 		// color: '#159AEA',
@@ -514,6 +547,13 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
+	remainTimeStyle: {
+		marginTop: 8,
+		marginLeft: 5,
+		position: 'absolute',
+		fontWeight: 'normal',
+		color: '#666F7B',
+	}
 });
 
 export default VideoDetail;
