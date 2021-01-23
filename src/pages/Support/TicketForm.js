@@ -66,7 +66,7 @@ function TicketForm(props) {
 			console.log(data);
 			axios
 				.post(
-					'http://spacem.techymau.games/api/AdminApi/CreateTicket',
+					'https://spacem.azurewebsites.net/api/AdminApi/CreateTicket',
 					formData,
 					{headers: {}},
 				)

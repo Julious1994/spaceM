@@ -113,7 +113,7 @@ function TicketView(props) {
 		});
 		axios
 			.post(
-				'http://spacem.techymau.games/api/AdminApi/SendMessageByCustomer',
+				'https://spacem.azurewebsites.net/api/AdminApi/SendMessageByCustomer',
 				formData,
 				{headers: {}},
 			)
@@ -210,7 +210,7 @@ function TicketView(props) {
 						<View style={[styles.ticketInfo, styles.messageContainer]}>
 							{/* {ticketDetails.ImagePath && <Image
 								source={{
-									uri: `http://spacem.techymau.games/${ticketDetails.ImagePath}`,
+									uri: `https://spacem.azurewebsites.net/${ticketDetails.ImagePath}`,
 								}}
 								style={{width: 100, height: 100}}
 							/>} */}

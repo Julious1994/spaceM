@@ -10,7 +10,7 @@ let Headers = {
 
 class Service {
 	constructor(props = {}) {
-		this.baseURL = 'http://spacem.techymau.games/api';
+		this.baseURL = 'https://spacem.azurewebsites.net/api';
 		this.token = props.token;
 	}
 
