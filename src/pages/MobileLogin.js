@@ -20,8 +20,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import PhoneInput from 'react-native-phone-number-input';
 import Icon from "react-native-vector-icons/MaterialIcons";
 
-import OTPInputView from '@twotalltotems/react-native-otp-input';
-import {LoginButton, AccessToken, LoginManager} from 'react-native-fbsdk';
 const services = new Service();
 function MobileLogin(props) {
 	const {navigation} = props;
