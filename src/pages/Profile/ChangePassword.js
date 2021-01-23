@@ -38,7 +38,7 @@ const Header = ({navigation}) => (
 
 const getUri = (item, i) => {
 	return item.ThumbnailPath
-		? {uri: `http://spacem.techymau.games/${item.ThumbnailPath}`}
+		? {uri: `https://spacem.azurewebsites.net/${item.ThumbnailPath}`}
 		: imageMapper.landscapeMovie.source;
 };
 
