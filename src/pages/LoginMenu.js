@@ -18,10 +18,17 @@ import Page from '../components/Page';
 import {useStateValue} from '../store/store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {LoginButton, AccessToken, LoginManager} from 'react-native-fbsdk';
+import { GoogleSignin, GoogleSigninButton } from '@react-native-community/google-signin';
+import Icon from "react-native-vector-icons/MaterialIcons";
+import LinearGradient from 'react-native-linear-gradient';
 
 const services = new Service();
 
-function Login(props) {
+GoogleSignin.configure({
+	webClientId: '206403307836-68kbtfcasp038nrjhsp334hf8a3jv9p7.apps.googleusercontent.com',
+});
+
+function LoginMenu(props) {
 	const {navigation} = props;
 	const [state, dispatch] = useStateValue();
 	const [credential, setCredential] = React.useState({});
@@ -40,37 +47,37 @@ function Login(props) {
 		navigation.dispatch(StackActions.push('Signup'));
 	}, [navigation]);
 
-	const handleLogin = React.useCallback(() => {
-		if (credential.Email && credential.Password) {
-			dispatch({type: 'SET_LOADING', loading: true});
-			const data = {
-				...credential,
-			};
-			services.post('Login', data).then(async (res) => {
-				dispatch({type: 'SET_LOADING', loading: false});
-				if (res.status === 200) {
-					dispatch({type: 'SET_USER', userData: res.res});
-					await AsyncStorage.setItem('loginData', JSON.stringify({...data}));
-					await AsyncStorage.setItem('user', JSON.stringify({...res.res}));
-					navigation.dispatch(
-						StackActions.replace('Home', {
-							params: {user: {...credential}},
-						}),
-					);
-				} else {
-					let message = '';
-					if (Array.isArray(res.res)) {
-						message = res.res[0];
-					} else {
-						message = res.res || res.res.Message;
-					}
-					Alert.alert('Network Error', message);
-				}
-			});
-		} else {
-			Alert.alert('Validation Error', 'All fields are required');
-		}
-	}, [credential, navigation, dispatch]);
+	// const handleLogin = React.useCallback(() => {
+	// 	if (credential.Email && credential.Password) {
+	// 		dispatch({type: 'SET_LOADING', loading: true});
+	// 		const data = {
+	// 			...credential,
+	// 		};
+	// 		services.post('Login', data).then(async (res) => {
+	// 			dispatch({type: 'SET_LOADING', loading: false});
+	// 			if (res.status === 200) {
+	// 				dispatch({type: 'SET_USER', userData: res.res});
+	// 				await AsyncStorage.setItem('loginData', JSON.stringify({...data}));
+	// 				await AsyncStorage.setItem('user', JSON.stringify({...res.res}));
+	// 				navigation.dispatch(
+	// 					StackActions.replace('Home', {
+	// 						params: {user: {...credential}},
+	// 					}),
+	// 				);
+	// 			} else {
+	// 				let message = '';
+	// 				if (Array.isArray(res.res)) {
+	// 					message = res.res[0];
+	// 				} else {
+	// 					message = res.res || res.res.Message;
+	// 				}
+	// 				Alert.alert('Network Error', message);
+	// 			}
+	// 		});
+	// 	} else {
+	// 		Alert.alert('Validation Error', 'All fields are required');
+	// 	}
+	// }, [credential, navigation, dispatch]);
 
 	React.useEffect(() => {
 		async function getUser() {
@@ -89,11 +96,11 @@ function Login(props) {
 				setCredential(JSON.parse(loginData))
 			}
 		}
-		// getUser();
+		getUser();
 	}, [dispatch, navigation]);
 
 	const handleSocialLogin = React.useCallback(
-		(json, token) => {
+		(json) => {
 			const data = {
 				Email: json.email,
 				UserName: json.name,
@@ -128,7 +135,28 @@ function Login(props) {
 		navigation.dispatch(
 			StackActions.push('MobileLogin'),
 		);
+    }, []);
+    
+    const handleLogin = React.useCallback(() => {
+		navigation.dispatch(
+			StackActions.push('Login'),
+		);
 	}, []);
+	
+	const handleGoogleLogin = React.useCallback(async () => {
+		dispatch({type: 'SET_LOADING', loading: true});
+		try {
+			await GoogleSignin.hasPlayServices();
+    		const userInfo = await GoogleSignin.signIn();
+			console.log(userInfo);
+			handleSocialLogin(userInfo.user);
+		} catch(e) {
+			dispatch({type: 'SET_LOADING', loading: false});
+			console.log('ERROR', e, {...e});
+			Alert.alert("Failed to login", e.message);
+		}
+	}, []);
+    
 
 	const handleFB = React.useCallback(async () => {
 		dispatch({type: 'SET_LOADING', loading: true});
@@ -165,39 +193,11 @@ function Login(props) {
 				<Typography variant="title2" style={styles.welcomeText}>
 					Welcome Back
 				</Typography>
-				<Input
-					style={styles.input}
-					value={credential.Email}
-					placeholder="Enter your Email id / phone number"
-					onChange={(value) => handleChange('Email', value)}
-				/>
-				<Input
-					style={styles.input}
-					value={credential.Password}
-					placeholder="Password"
-					secureTextEntry={true}
-					onChange={(value) => handleChange('Password', value)}
-				/>
-				<TouchableOpacity
-					style={styles.forgotLink}
-					onPress={handleForgotPassword}>
-					<Typography variant="body" style={styles.forgotText}>
-						Forgot password
-					</Typography>
-				</TouchableOpacity>
-				<Button title="Login" onPress={handleLogin} />
-				<View style={styles.signupLinkContainer}>
-					<Typography variant="description" style={styles.dontHaveAccount}>
-						Don't have an account?
-					</Typography>
-					<TouchableOpacity onPress={handleSignup}>
-						<Typography variant="description" style={styles.signup}>
-							Signup
-						</Typography>
-					</TouchableOpacity>
-				</View>
-				{/* <Button title="Login with mobile" onPress={handleMobileLogin} /> */}
-			</View>
+				<Button leftIcon={<Image source={imageMapper.google.source} style={styles.google} />} style={styles.loginButton} title="Login with Gmail" onPress={handleGoogleLogin} />
+				<Button leftIcon={<Icon name="email" size={24} color="#fff" style={styles.buttonIcon} />} style={styles.loginButton} title="Login with Email" onPress={handleLogin} />
+				<Button leftIcon={<Icon name="call" size={24} color="#fff" style={styles.buttonIcon} />} style={styles.loginButton} title="Login with Mobile" onPress={handleMobileLogin} />
+				
+            </View>
 		</Page>
 	);
 }
@@ -244,7 +244,20 @@ const styles = StyleSheet.create({
 	signup: {
 		textDecorationLine: 'underline',
 		fontWeight: 'bold',
+    },
+    loginButton: {
+        marginBottom: 15,
 	},
+	google: {
+		width: 24,
+		height: 20,
+		marginTop: 3,
+		marginRight: 10,
+	},
+	buttonIcon: {
+		marginRight: 10,
+		// marginTop: 5
+	}
 });
 
-export default Login;
+export default LoginMenu;
