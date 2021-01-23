@@ -5,6 +5,10 @@ import Button from '../components/Button';
 import ScrollablePageView from '../components/ScrollablePageView';
 import commonStyles from '../commonStyles';
 import imageMapper from '../images/imageMapper';
+import Service from '../services/http';
+import {useStateValue} from '../store/store';
+import moment from "moment";
+const services = new Service();
 
 const Header = ({navigation}) => (
 	<View style={styles.headerContainer}>
@@ -22,12 +26,45 @@ const Header = ({navigation}) => (
 
 function Notification(props) {
 	const {navigation} = props;
+	const [state, dispatch] = useStateValue();
 
+	React.useEffect(() => {
+		const hasUnread = state.notificationList.findIndex(n => n.IsRead === false) !== -1;
+		if (state.user.CustomerId && hasUnread) {
+			services
+				.get(`NotificationStatusChange?CustomerId=${state.user.CustomerId}`)
+				.then((res) => {
+					console.log('notification list status', res);
+					const data = state.notificationList.map(n => {
+						return {...n, IsRead: true}
+					});
+					dispatch({type: 'SET_NOTIFICATION', data: [...data]});
+				});
+		}
+	}, [state.user, state.notificationList]);
+
+	const notificationList = state.notificationList;
+	console.log(state);
 	return (
 		<ScrollablePageView header={<Header navigation={navigation} />}>
-			<Typography variant="body" style={{fontWeight: 'normal', alignSelf: 'center', marginTop: 15, letterSpacing: 0.5}}>
+			{notificationList.length <= 0 && <Typography
+				variant="body"
+				style={{
+					fontWeight: 'normal',
+					alignSelf: 'center',
+					marginTop: 15,
+					letterSpacing: 0.5,
+				}}>
 				No notifications currently
-			</Typography>
+			</Typography>}
+			{notificationList.map((notification, i) => (
+				<View style={[styles.messageContainer]}>
+					<Typography variant="description">{notification.Message}</Typography>
+					<Typography variant="tiny2" style={styles.timeView}>
+						{moment(notification.CreatedDate).format('DD/MM hh:mm')}
+					</Typography>
+				</View>
+			))}
 		</ScrollablePageView>
 	);
 }
@@ -142,6 +179,21 @@ const styles = StyleSheet.create({
 		width: 110,
 		height: 75,
 	},
+	messageContainer: {
+		// minWidth: '10%',
+		// maxWidth: '70%',
+		padding: 10,
+		backgroundColor: '#031B3B',
+		margin: 15,
+		marginTop: 3,
+		marginBottom: 3,
+		borderRadius: 3,
+		// alignSelf: 'flex-end',
+	},
+	timeView: {
+		alignSelf: 'flex-end',
+		marginTop: 5,
+	}
 });
 
 export default Notification;
