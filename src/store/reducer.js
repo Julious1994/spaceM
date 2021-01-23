@@ -8,6 +8,7 @@ export const initialState = {
 	watchList: [],
 	continueWatchingList: [],
 	purchasedList: [],
+	notificationList: [],
 };
 
 export const reducer = (state, action) => {
@@ -38,6 +39,12 @@ export const reducer = (state, action) => {
 			return {
 				...state,
 				notification: action.notification,
+			};
+		case 'SET_NOTIFICATION':
+			console.log(action.data);
+			return {
+				...state,
+				notificationList: action.data,
 			};
 		case 'SET_LOADING':
 			return {
