@@ -32,7 +32,7 @@ function HorizontalList(props) {
 	const image = type === 'historic' ? 'landscapeMovie' : 'moviePhoto';
 	const getUri = (item, i) => {
 		return item.ThumbnailPath
-			? {uri: `https://spacem.azurewebsites.net/${item.ThumbnailPath}`}
+			? {uri: `https://spacem.in/${item.ThumbnailPath}`}
 			: imageMapper[i % 2 === 0 ? image + '_2' : image].source;
 	};
 	if (data.length <= 0) {

@@ -24,7 +24,7 @@ export function sharePDFWithAndroid(fileUrl, type) {
 
 export const getUri = (item, i) => {
 	return item.ThumbnailPath
-		? {uri: `https://spacem.azurewebsites.net/${item.ThumbnailPath}`}
+		? {uri: `https://spacem.in/${item.ThumbnailPath}`}
 		: imageMapper.landscapeMovie.source;
 };
 

@@ -8,7 +8,7 @@ function WatchListItem(props) {
 	const {item: video = {}} = props;
 	const getUri = (item) => {
 		return item.ThumbnailPath
-			? {uri: `https://spacem.azurewebsites.net/${item.ThumbnailPath}`}
+			? {uri: `https://spacem.in/${item.ThumbnailPath}`}
 			: imageMapper.moviePhoto.source;
 	};
 	return (

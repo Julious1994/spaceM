@@ -318,7 +318,7 @@ function Home(props) {
 					<TouchableOpacity key={i} onPress={() => handleVideoClick(v)}>
 						<Image
 							source={{
-								uri: `https://spacem.azurewebsites.net/${v.ThumbnailPath}`,
+								uri: `https://spacem.in/${v.ThumbnailPath}`,
 							}}
 							resizeMode="stretch"
 							style={[styles.videoThumbnail, {width: moreVideoLength}]}
@@ -346,7 +346,7 @@ function Home(props) {
 						<Image
 							resizeMode="stretch"
 							source={{
-								uri: `https://spacem.azurewebsites.net/${v.ThumbnailPath}`,
+								uri: `https://spacem.in/${v.ThumbnailPath}`,
 							}}
 							style={[styles.videoThumbnail, {width: moreVideoLength}]}
 						/>
@@ -372,7 +372,7 @@ function Home(props) {
 					<TouchableOpacity key={i} onPress={() => handleVideoClick(v)}>
 						<Image
 							source={{
-								uri: `https://spacem.azurewebsites.net/${v.ThumbnailPath}`,
+								uri: `https://spacem.in/${v.ThumbnailPath}`,
 							}}
 							resizeMode="stretch"
 							style={[styles.videoThumbnail, {width: moreVideoLength}]}
@@ -399,7 +399,7 @@ function Home(props) {
 					<TouchableOpacity key={i} onPress={() => handleVideoClick(v)}>
 						<Image
 							source={{
-								uri: `https://spacem.azurewebsites.net/${v.ThumbnailPath}`,
+								uri: `https://spacem.in/${v.ThumbnailPath}`,
 							}}
 							resizeMode="stretch"
 							style={[styles.videoThumbnail, {width: moreVideoLength}]}
@@ -560,7 +560,7 @@ const styles = StyleSheet.create({
 		width: 24,
 		height: 24,
 		marginBottom: 6,
-		backgroundColor: 'rgba(255, 255, 255, 0.1)',
+		backgroundColor: 'rgba(255, 255, 255, 0.03)',
 		tintColor: '#fff',
 	},
 	actionItem: {},
