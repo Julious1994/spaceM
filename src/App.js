@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, BackHandler, Alert, StatusBar} from 'react-native';
+import {View, Text, BackHandler, Alert, StatusBar, LogBox} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import Loader from './components/Loader';
@@ -9,6 +9,8 @@ import {reducer, initialState} from './store/reducer';
 import Orientation from 'react-native-orientation-locker';
 
 const Stack = createStackNavigator();
+
+LogBox.ignoreAllLogs();
 
 function App() {
 	const navigationRef = React.useRef();
