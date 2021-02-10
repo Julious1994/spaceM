@@ -19,8 +19,7 @@ function Typography(props) {
 
 const styles = StyleSheet.create({
 	container: {},
-	title1: {
-		fontFamily: 'Montserrat',
+	title1: {	
 		fontStyle: 'normal',
 		fontWeight: 'bold',
 		fontSize: 26,
@@ -29,7 +28,6 @@ const styles = StyleSheet.create({
 		color: '#FFFFFF',
 	},
 	title2: {
-		fontFamily: 'Nunito',
 		fontStyle: 'normal',
 		fontWeight: 'bold',
 		fontSize: 18,
@@ -38,7 +36,6 @@ const styles = StyleSheet.create({
 		color: '#FFFFFF',
 	},
 	title3: {
-		fontFamily: 'Nunito',
 		fontStyle: 'normal',
 		fontWeight: 'bold',
 		fontSize: 16,
@@ -47,7 +44,6 @@ const styles = StyleSheet.create({
 		color: '#FFFFFF',
 	},
 	body: {
-		fontFamily: 'Nunito',
 		fontStyle: 'normal',
 		fontWeight: 'bold',
 		fontSize: 14,
@@ -56,7 +52,6 @@ const styles = StyleSheet.create({
 		color: '#666F7B',
 	},
 	description: {
-		fontFamily: 'Nunito',
 		fontStyle: 'normal',
 		fontWeight: 'normal',
 		fontSize: 12,
@@ -65,7 +60,6 @@ const styles = StyleSheet.create({
 		color: '#FFFFFF',
 	},
 	tiny1: {
-		fontFamily: 'Nunito',
 		fontStyle: 'normal',
 		fontWeight: 'normal',
 		fontSize: 10,
@@ -73,7 +67,6 @@ const styles = StyleSheet.create({
 		color: '#666F7B',
 	},
 	tiny2: {
-		fontFamily: 'Nunito',
 		fontStyle: 'normal',
 		fontWeight: 'normal',
 		fontSize: 8,
