@@ -86,12 +86,22 @@ function LoginMenu(props) {
 
 			if (user) {
 				const userData = user ? JSON.parse(user) : {};
-				dispatch({type: 'SET_USER', userData});
-				navigation.dispatch(
-					StackActions.replace('Home', {
-						params: {user: {...userData}},
-					}),
-				);
+				const data = {
+					UserId: userData.CustomerId,
+				};
+				services.post('GetUserDetailByID', data).then((res) => {
+					if (res.status === 200) {
+						dispatch({type: 'SET_USER', userData: {...userData, ...res.res}});
+						navigation.dispatch(
+							StackActions.replace('Home', {
+								params: {user: {...userData, ...res.res}},
+							}),
+						);
+					} else {
+						Alert.alert('Network error', 'Try again later');
+					}
+				});
+				
 			} else if(loginData) {
 				setCredential(JSON.parse(loginData))
 			}
@@ -118,13 +128,15 @@ function LoginMenu(props) {
 						}),
 					);
 				} else {
-					let message = '';
-					if (Array.isArray(res.res)) {
-						message = res.res[0];
+					if (typeof res.res === 'object') {
+						Alert.alert('Mobile login', JSON.stringify(res.res));
+					} else if (Array.isArray(res.res)) {
+						Alert.alert('Mobile login', res.res[0]);
+					} else if (res.Body) {
+						Alert.alert('Mobile login', res.Body);
 					} else {
-						message = res.res || res.res.Message;
+						Alert.alert('Mobile login', res.res);
 					}
-					Alert.alert('Network Error', message);
 				}
 			});
 		},
