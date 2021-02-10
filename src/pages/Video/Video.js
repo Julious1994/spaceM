@@ -8,6 +8,8 @@ import {
 	ActivityIndicator,
 	Dimensions,
 	StatusBar,
+	Platform,
+	Alert,
 } from 'react-native';
 import Video from 'react-native-video';
 import imageMapper from '../../images/imageMapper';
@@ -21,15 +23,16 @@ import Slider from '@react-native-community/slider';
 import moment from 'moment';
 import Orientation from 'react-native-orientation-locker';
 import VideoModal from './VideoModal';
+import Webview from 'react-native-webview';
+import JWPlayer, {JWPlayerState} from 'react-native-jw-media-player';
+import ImmersiveMode from 'react-native-immersive-mode';
+import { NativeModules } from 'react-native';
 
 const services = new Service();
+const dim = Dimensions.get('window');
 
-const isLandscape = () => {
-	const dim = Dimensions.get('screen');
-	if (dim.width >= dim.height) {
-		return true;
-	}
-	return false;
+const isPortrait = () => {
+	return dim.height >= dim.width;
 };
 
 function DurationView(props) {
@@ -65,7 +68,7 @@ function VideoScreen(props) {
 	const {video = {}} = params;
 	const [videoDetails, setVideoDetails] = React.useState();
 	const [currentTime, setCurrentTime] = React.useState();
-	const [showControl, setShowControl] = React.useState(true);
+	const [showControl, setShowControl] = React.useState(false);
 	const [loading, setLoading] = React.useState(false);
 	const [isSeek, setIsSeek] = React.useState(false);
 	const [paused, setPaused] = React.useState(true);
@@ -77,6 +80,9 @@ function VideoScreen(props) {
 	const [selectedQuality, setSelectedQuality] = React.useState();
 	const [isQualityChanged, setIsQualityChanged] = React.useState(false);
 	const [qualityView, setQualityView] = React.useState(false);
+	const [alert, setAlert] = React.useState(false);
+	const intervalRef = React.useRef(0);
+	const isSeekRef = React.useRef(false);
 
 	const player = React.useRef();
 	const onBuffer = React.useCallback((e) => {
@@ -92,13 +98,15 @@ function VideoScreen(props) {
 	const videoError = React.useCallback((err) => {
 		console.log('err', err);
 	}, []);
-	const handleForward = React.useCallback(() => {
+	const handleForward = React.useCallback(async () => {
 		console.log('forward');
-		console.log('forward============', currentTime, player.current.seek);
+		console.log('forward============', currentTime );
+		const position = await player.current.position()
+		console.log({position, duration});
 		if (currentTime) {
 			const time = currentTime + 10;
 			setCurrentTime(duration < time ? duration : time);
-			player.current.seek(duration < time ? duration : time);
+			player.current.seekTo(duration < time ? duration : time);
 		}
 	}, [player, currentTime, duration]);
 
@@ -106,7 +114,7 @@ function VideoScreen(props) {
 		if (currentTime > 0) {
 			const time = currentTime - 10;
 			setCurrentTime(time > -1 ? time : 1);
-			player.current.seek(time > -1 ? time : 1);
+			player.current.seekTo(time > -1 ? time : 1);
 		}
 	}, [player, currentTime]);
 
@@ -116,22 +124,30 @@ function VideoScreen(props) {
 
 	const handleLoad = React.useCallback(
 		(e) => {
-			console.log('video loading', e);
-			setDuration(Math.floor(e.duration));
-			setCurrentTime(e.currentTime);
-			setPaused(false);
-			if (!isSeek && player.current && videoDetails.WatchTime) {
-				setIsSeek(true);
-				if(videoDetails.WatchTime) {
-					player.current.seek(Number(videoDetails.WatchTime));
+			console.log('=====eo loading', e);
+			console.log(player.current);
+			player.current.setFullscreen(true);
+			// setDuration(Number(videoDetails.WatchTime));
+			// setDuration(Math.floor(e.duration));
+			// setCurrentTime(e.currentTime);
+			// setPaused(false);
+			console.log(isSeekRef.current);
+			if (!isSeekRef.current && player.current && videoDetails.WatchTime) {
+				isSeekRef.current = true;
+				console.log('came here');
+				if (videoDetails.WatchTime) {
+					player.current.seekTo(Number(videoDetails.WatchTime));
+					// player.current.seekTo(Number(videoDetails.WatchTime));
 				}
 			}
-			console.log(isQualityChanged);
-			if(isQualityChanged) {
-				setIsQualityChanged(false);
-				player.current.seek(Number(currentTime));
-			}
-			
+			// console.log(isQualityChanged);
+			// if (isQualityChanged) {
+			// 	setIsQualityChanged(false);
+			// 	console.log(currentTime);
+			// 	if (!isNaN(Number(currentTime))) {
+			// 		player.current.seek(Number(currentTime));
+			// 	}
+			// }
 		},
 		[isSeek, player, videoDetails, currentTime, isQualityChanged],
 	);
@@ -145,40 +161,44 @@ function VideoScreen(props) {
 
 	const handleVideoPress = React.useCallback(() => {
 		handleShowControl();
-		if (!paused) {
 			setTimeout(() => {
 				handleHideControl();
 			}, 5000);
-		}
+	
 	}, [handleShowControl, handleHideControl, paused]);
 
 	const updateContinueWatching = React.useCallback(
 		async (_currentTime) => {
-			if (interval === 5) {
+			// console.log({_currentTime, time: intervalRef.current});
+			if (intervalRef.current === 100) {
 				const data = {
 					CustomerId: state.user.CustomerId,
 					WatchTime: _currentTime.toFixed(0),
 					VideoId: video.VideoId,
 				};
 				const result = await services.post('ContinueWatchingVideo', data);
-				// console.log(result);
+				console.log(result);
 				dispatch({type: 'UPDATE_CONTINUE_WATCHING', data: {...video, ...data}});
-				setInterval(0);
+				// setInterval(0);
+				intervalRef.current = 0;
 			} else {
-				setInterval(interval + 1);
+				// console.log('came here');
+				intervalRef.current = intervalRef.current + 1;
+				// setInterval(i => i + 1);
 			}
 		},
-		[interval, dispatch, state.user, video],
+		[intervalRef, dispatch, state.user, video],
 	);
 
 	const handleProgress = React.useCallback(
-		async (e) => {
-			// console.log('called');
-			setCurrentTime(e.currentTime);
-			setSeekTime(e.currentTime);
-			updateContinueWatching(e.currentTime);
+		async ({time, duration, ...e}) => {
+			// console.log('called progress',  e);
+			setCurrentTime(e.nativeEvent.position);
+			setDuration(e.nativeEvent.duration)
+			setSeekTime(e.nativeEvent.position);
+			updateContinueWatching(e.nativeEvent.position);
 		},
-		[updateContinueWatching],
+		[updateContinueWatching, player],
 	);
 
 	const handlePaused = React.useCallback(() => {
@@ -207,30 +227,49 @@ function VideoScreen(props) {
 
 	const handleBitRate = React.useCallback((value) => {
 		console.log(value);
-		setSelectedQuality(value);	
+		setSelectedQuality(value);
 		setIsQualityChanged(true);
 		setQualityView(false);
 	}, []);
 
 	const handleQualityView = React.useCallback(() => {
 		setQualityView(true);
-	})
+	});
 
 	const closeQualityView = React.useCallback(() => {
 		setQualityView(false);
-	})
+	});
 
 	React.useEffect(() => {
 		setLoading(true);
-		services.get(`DisplayVideoDetail?VideoId=${video.VideoId}&CustomerId=${state.user.CustomerId}`).then((res) => {
-			console.log(res);
-			setLoading(false);
-			if (res && res.Body && res.VideoQualityList) {
-				setVideoDetails({...res.Body[0], VideoQualityList: [...res.VideoQualityList],ExpireDetail: {...res.ExpireDetail}, ...video});
-				setSelectedQuality(res.VideoQualityList[0]);
+		ImmersiveMode.fullLayout(true);
+		NativeModules.PreventScreenshotModule.forbid();
+		services
+			.get(
+				`DisplayVideoDetail?VideoId=${video.VideoId}&CustomerId=${state.user.CustomerId}`,
+			)
+			.then((res) => {
+				console.log(res);
+				setLoading(false);
+				if (res && res.Body && res.VideoQualityList) {
+					setVideoDetails({
+						...res.Body[0],
+						VideoQualityList: [...res.VideoQualityList],
+						ExpireDetail: {...res.ExpireDetail},
+						...video,
+					});
+					setSelectedQuality(res.VideoQualityList[0]);
+				}
+			});
+			return () => {
+				console.log('=================unmount===========');
+				// player.current.stop();
+				NativeModules.PreventScreenshotModule.allow();
+				ImmersiveMode.fullLayout(false);
+				player.current = null;
+				isSeekRef.current = false;
 			}
-		});
-	}, [video, state.user]);
+	}, [video, state.user, isSeekRef]);
 
 	// React.useEffect(() => {
 	// 	if (player.current && videoDetails && videoDetails.WatchTime && !isSeek) {
@@ -239,50 +278,116 @@ function VideoScreen(props) {
 	// 		player.current.seek(Nulandscapember(videoDetails.WatchTime));
 	// 	}
 	// }, [player, videoDetails, isSeek]);
+	let _onOrientationDidChange = (orientation) => {
+		console.log('cccc', Orientation.getInitialOrientation().toLowerCase());
+		setOrientation(isPortrait() ? 'portrait' : 'landscape');
+	};
 
 	useEffect(() => {
-		console.log('kkkk', Orientation.getInitialOrientation().toLowerCase())
-		setOrientation(Orientation.getInitialOrientation().toLowerCase());
-		let _onOrientationDidChange = (orientation) => {
-			console.log('cccc', Orientation.getInitialOrientation().toLowerCase());
-			setOrientation(Orientation.getInitialOrientation().toLowerCase())
-		  };
-		Orientation.addOrientationListener(_onOrientationDidChange);
-
+		console.log('kkkk', Orientation.getInitialOrientation().toLowerCase());
 		Orientation.unlockAllOrientations();
+		Orientation.lockToLandscape();
+		setOrientation(isPortrait() ? 'portrait' : 'landscape');
+		Dimensions.addEventListener('change', () =>
+			setOrientation(isPortrait() ? 'portrait' : 'landscape'),
+		);
+
 		return () => {
 			StatusBar.setHidden(false);
-			Orientation.removeOrientationListener(_onOrientationDidChange);
+			Dimensions.removeEventListener('change');
 			Orientation.lockToPortrait();
 			player.current = null;
 		};
 	}, []);
 
 	let videoPath = selectedQuality?.VideoPath;
-	if(videoDetails?.ExpireDetail && `${videoDetails?.ExpireDetail?.IsValid}` === 'false') {
-		console.log('this is trailer', videoDetails);
+	if (
+		videoDetails?.ExpireDetail &&
+		`${videoDetails?.ExpireDetail?.IsValid}` === 'false' &&
+		videoDetails?.Amount !== 0
+	) {
+		// console.log('this is trailer', videoDetails);
 		videoPath = videoDetails.VideoTrailerPath;
-	} 
+	}
 
-	console.log({videoPath, loading});
-	if (loading || (!videoPath)) {
+	// console.log({videoPath, loading});
+	if (loading) {
 		return (
-			<ActivityIndicator
-				size="large"
-				color="#159AEA"
-				style={commonStyles.loader}
-			/>
+			<View style={commonStyles.pageStyle}>
+				<ActivityIndicator
+					size="large"
+					color="#159AEA"
+					style={commonStyles.loader}
+				/>
+			</View>
 		);
 	}
-	// console.log(`https://spacem.azurewebsites.net/${videoDetails?.VideoPath}`);
+
+	if (!videoPath && !loading) {
+		return (
+			<View style={commonStyles.pageStyle}>
+				{/* <Typography variant="title3" style={{alignSelf: 'center', marginTop: 10}}>No video found</Typography> */}
+			</View>
+		);
+	}
+	// console.log(`https://spacem.in/${videoDetails?.VideoPath}`);
 	const landscape = orientation === 'landscape';
 	// console.log('landscape', selectedQuality);
 	// console.log(selectedQuality);
-	
+	// console.log(landscape, orientation);
+	const videoURI =
+		videoPath.indexOf('http') !== -1
+			? `${videoPath}(format=m3u8-aapl)`
+			: `https://spacem.in${videoPath}`;
+
+	// return (
+	// 	<Webview
+	// 		onError={(e) => console.log(e)}
+	// 		source={{html: `
+	// 			<html>
+	// 				<head>
+	// 					<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0">
+	// 					<link href="https://amp.azure.net/libs/amp/latest/skins/amp-flush/azuremediaplayer.min.css" rel="stylesheet">
+	// 					<script src= "https://amp.azure.net/libs/amp/latest/azuremediaplayer.min.js"></script>
+	// 				</head>
+	// 				<body style="background-color:black;padding:0;margin:0">
+	// 					<video id="vid1" class="azuremediaplayer amp-flush-skin amp-big-play-centered" autoplay controls width="100%" height="100%" poster="https://spacem.in${videoDetails.PosterPath}" data-setup='{"nativeControlsForTouch": false}' style="padding:0;margin:0;position:relative;border:0px !important;">
+	// 						<source src="${videoURI}" type="application/vnd.ms-sstr+xml" />
+	// 						<track kind="subtitles" src="https://spacem.in${videoDetails.SubTitlePath}" srclang="en" label="English">
+	// 					</video>
+	// 				</body>
+	// 			</html>
+	// 		`}}
+	// 	/>
+	// )
+	// console.log({videoDetails}, 'viiii');
+	const playlistItem = {
+		title: 'Track',
+		mediaId: '1',
+		image: `https://spacem.in${videoDetails.PosterPath}`,
+		// desc: 'My beautiful track',
+		time: videoDetails.WatchTime ? Number(videoDetails.WatchTime) : 0,
+		file: `${videoURI}`,
+		autostart: true,
+		controls: true,
+		repeat: false,
+		displayDescription: true,
+		displayTitle: true,
+		playerStyle: "video",
+		tracks: [
+			{
+				// file: 'http://carinait.net/projects/spacemvtt/View_From_A_Blue_Moon_Trailer-HD.en.vtt',
+				file: `https://spacem.in${videoDetails.SubTitlePath}`,
+				label: 'en',
+			},
+		],
+		backgroundAudioEnabled: false,
+	};
+	// console.log(playlistItem);
 	return (
 		<React.Fragment>
 			<StatusBar hidden />
-			<TouchableOpacity
+			{/* <TouchableOpacity
 				activeOpacity={1}
 				onPress={handleVideoPress}
 				style={{
@@ -290,16 +395,47 @@ function VideoScreen(props) {
 					position: 'relative',
 					width: '100%',
 					backgroundColor: 'black',
-				}}>
-				<Video
-					source={{uri: `https://spacem.azurewebsites.net${videoPath}` }}
+				}}> */}
+				<JWPlayer
+					ref={(p) => (player.current = p)}
+					style={styles.player}
+					playerStyle={'custom'}
+					playlistItem={playlistItem} // Recommended - pass the playlistItem as a prop into the player
+					// playlist={[playlistItem]}
+					// onBeforePlay={(e) => console.log(e)}
+					onPlay={(e) => handleLoad(e)}
+					onPause={(e) => console.log(e)}
+					// onIdle={() => player.current && player.current.stop()}
+					// startTime={360}
+					// onPlayerReady={(e) => {
+					// 	handleLoad();
+					// 	console.log('cccccc', {...e}, e.nativeEvent.duration)
+					// }}
+					onPlaylistItem={(event) => console.log({...event})}
+					onSetupPlayerError={(event) => console.log(event)}
+					onPlayerError={(event) => console.log(event)}
+					onBuffer={(e) => console.log(e)}
+					onTime={handleProgress}
+					backgroundAudioEnabled={false}
+					fullScreenOnLandscape={true}
+					nativeFullScreen={true}
+					landscapeOnFullScreen={true}
+					// onFullScreen={() => this.onFullScreen()}
+					// onFullScreenExit={() => this.onFullScreenExit()}
+				/>
+				{/* <JWPlayer
+					source={{uri: 'http://profficialsite.origin.mediaservices.windows.net/5ab94439-5804-4810-b220-1606ddcb8184/tears_of_steel_1080p-m3u8-aapl.ism/manifest(format=m3u8-aapl)', 
+								type: 'application/vnd.ms-sstr+xml',
+								"extension": "m3u8"
+							}}
 					ref={(ref) => {
 						// console.log(ref);
 						player.current = ref;
 					}} // Store reference
+					playlistItem={playlistItem}
 					navigator={props.navigation}
 					reportBandwidth={true}
-					onBandwidthUpdate={(data) => console.log('bandwidth', data)}
+					// onBandwidthUpdate={(data) => console.log('bandwidth', data)}
 					onEnd={handleEnd}
 					onLoad={handleLoad}
 					onBuffer={onBuffer} // Callback when remote video is buffering
@@ -311,7 +447,7 @@ function VideoScreen(props) {
 					onHideControls={handleHideControl}
 					onShowControls={handleShowControl}
 					seekColor="#159AEA"
-					onProgress={handleProgress}
+					onTime={handleProgress}
 					toggleResizeModeOnFullscreen={false}
 					doubleTapTime={75}
 					controlTimeout={5000}
@@ -327,22 +463,22 @@ function VideoScreen(props) {
 							title: 'Spanish Subtitles',
 							language: 'es',
 							type: TextTrackType.VTT, // "application/x-subrip"
-							// uri: `https://spacem.azurewebsites.net${videoDetails.SubTitlePath}`
+							// uri: `https://spacem.in${videoDetails.SubTitlePath}`
 							uri: 'http://carinait.net/projects/spacemvtt/View_From_A_Blue_Moon_Trailer-HD.en.vtt',
 						},
 					]}
-				/>
+				/> */}
 				<React.Fragment>
-					{showControl && (
+					{(
 						<React.Fragment>
-							<TouchableOpacity style={styles.backArrow} onPress={handleBack}>
+							{/* <TouchableOpacity style={styles.backArrow} onPress={handleBack}>
 								<Icon name="west" color="#fff" size={32} />
-							</TouchableOpacity>
-							<DurationView
+							</TouchableOpacity> */}
+							{/* <DurationView
 								value={seekTime}
 								onSeek={updateSeek}
 								total={duration}
-							/>
+							/> */}
 							{isBuffering && (
 								<ActivityIndicator
 									size="large"
@@ -358,14 +494,17 @@ function VideoScreen(props) {
 									]}>
 									<TouchableOpacity
 										style={styles.backward}
-										onPress={handleBackward}>
-										<Image
+										onPress={() => {
+											handleVideoPress();
+											handleBackward();
+										}}>
+										{showControl && <Image
 											style={styles.seekButton}
 											source={imageMapper.backwardPlay.source}
-										/>
+										/>}
 									</TouchableOpacity>
 
-									<TouchableOpacity
+									{/* <TouchableOpacity
 										style={styles.playButton}
 										onPress={handlePaused}>
 										<Icon
@@ -373,31 +512,43 @@ function VideoScreen(props) {
 											color="#fff"
 											size={48}
 										/>
-									</TouchableOpacity>
+									</TouchableOpacity> */}
 									<TouchableOpacity
 										style={styles.forward}
-										onPress={handleForward}>
-										<Image
-											style={styles.seekButton}
+										onPress={() => {
+											handleVideoPress()
+											handleForward() 
+											}}>
+										{showControl && <Image
+											style={[styles.seekButton, {marginLeft: 10}]}
 											source={imageMapper.forwardPlay.source}
-										/>
+										/>}
 									</TouchableOpacity>
 								</View>
 							)}
-							<TouchableOpacity style={{position: 'absolute', bottom: 10, right: 20, paddingRight: 30}} onPress={handleQualityView}>
+							{/* <TouchableOpacity
+								style={{
+									position: 'absolute',
+									bottom: 10,
+									right: 20,
+									paddingRight: 30,
+								}}
+								onPress={handleQualityView}>
 								<Typography variant="title3">Change Quality</Typography>
-							</TouchableOpacity>
+							</TouchableOpacity> */}
 						</React.Fragment>
 					)}
 				</React.Fragment>
-			</TouchableOpacity>
-			{qualityView && <VideoModal 
-				open={qualityView}
-				onQualityChange={handleBitRate}
-				list={videoDetails.VideoQualityList}
-				selectedQuality={selectedQuality}
-				onClose={closeQualityView}
-			/>}
+			{/* </TouchableOpacity> */}
+			{qualityView && (
+				<VideoModal
+					open={qualityView}
+					onQualityChange={handleBitRate}
+					list={videoDetails.VideoQualityList}
+					selectedQuality={selectedQuality}
+					onClose={closeQualityView}
+				/>
+			)}
 		</React.Fragment>
 	);
 }
@@ -417,12 +568,18 @@ const styles = StyleSheet.create({
 		// top: '45%',
 		// right: 50,
 		marginTop: 3,
+		// paddingLeft: 20,
+		width: 70,
+		height: 120,
 	},
 	backward: {
 		// position: 'absolute',
 		// top: '45%',
 		// left: 50,
 		marginTop: 3,
+		width: 120,
+		height: 120,
+		
 	},
 	backwardPlay: {},
 	forwardPlay: {},
@@ -471,6 +628,9 @@ const styles = StyleSheet.create({
 	bufferingLoader: {
 		top: '45%',
 	},
+	player: {
+		flex: 1,
+	}
 });
 
 export default VideoScreen;

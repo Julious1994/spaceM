@@ -31,11 +31,13 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const services = new Service();
 const ScreenWidth = Dimensions.get('window').width;
-const moreVideoLength = (ScreenWidth - 54) / 3;
+const videoImageLength = (ScreenWidth - 54) / 3;
+
+console.log({ScreenWidth, videoImageLength});
 
 const getUri = (item, i) => {
 	return item.ThumbnailPath
-		? {uri: `https://spacem.azurewebsites.net/${item.ThumbnailPath}`}
+		? {uri: `https://spacem.in/${item.PosterPath}`}
 		: imageMapper.landscapeMovie.source;
 };
 
@@ -53,6 +55,7 @@ function VideoDetail(props) {
 	const [shareLoading, setShareLoading] = React.useState(false);
 	const [loading, setLoading] = React.useState(true);
 	const [videoDetails, setVideoDetails] = React.useState({});
+	const moreVideoLength = React.useRef(videoImageLength);
 
 	const handleTabClick = React.useCallback((i) => {
 		setActiveTab(i);
@@ -108,7 +111,7 @@ function VideoDetail(props) {
 					'rgba(1, 20, 46, 0.9)',
 				]}>
 				<Button textStyle={{fontSize: 18}} title={title} onPress={onPress}>
-					{expires?.TimeRemainingInSec && <Typography variant="description" style={styles.remainTimeStyle}>(expires in {getTime(Number(expires?.TimeRemainingInSec || 0))})</Typography>}
+					{expires?.TimeRemainingInSec && <Typography variant="description" style={styles.remainTimeStyle}>{`(expires in ${getTime(Number(expires?.TimeRemainingInSec || 0))})`}</Typography>}
 				</Button>
 			</LinearGradiant>
 		);
@@ -160,9 +163,9 @@ function VideoDetail(props) {
 							<TouchableOpacity key={i} onPress={() => handleVideoClick(v)}>
 								<Image
 									source={{
-										uri: `https://spacem.azurewebsites.net/${v.ThumbnailPath}`,
+										uri: `https://spacem.in/${v.ThumbnailPath}`,
 									}}
-									style={[styles.videoThumbnail, {width: moreVideoLength}]}
+									style={[styles.videoThumbnail, {width: moreVideoLength.current}]}
 								/>
 							</TouchableOpacity>
 						),
@@ -253,14 +256,14 @@ function VideoDetail(props) {
 		const type = videoDetails.ThumbnailPath?.split('.')[1];
 		setShareLoading(true);
 		sharePDFWithAndroid(
-			`https://spacem.azurewebsites.net${videoDetails?.ThumbnailPath}`,
+			`https://spacem.in${videoDetails?.ThumbnailPath}`,
 			`image/${type === 'jpg' ? 'jpeg' : type}`,
 		).then((base64Data) => {
 			setShareLoading(false);
 			const options = {
 				title: 'Share movie',
 				message: `Please watch this movie
-				Download app from here: ${'https://spacem.azurewebsites.net'}`,
+				Download app from here: ${'https://spacem.in'}`,
 				url: base64Data,
 				subject: 'share it',
 			};
@@ -270,6 +273,14 @@ function VideoDetail(props) {
 			});
 		});
 	}, [videoDetails]);
+
+	React.useEffect(() => {
+		Dimensions.addEventListener('change', () => {
+			const ScreenWidth = Dimensions.get('window').width;
+			const imageLength = (ScreenWidth - 54) / 3;
+			moreVideoLength.current = imageLength;
+		})
+	}, []);
 
 	React.useEffect(() => {
 		setLoading(true);
