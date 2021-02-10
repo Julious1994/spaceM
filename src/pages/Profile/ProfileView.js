@@ -47,6 +47,7 @@ function ProfileView(props) {
 	const phoneInput = React.useRef(null);
 
 	const handleChange = React.useCallback((key, value) => {
+		console.log(key, value);
 		setCredential((c) => {
 			return {...c, [key]: value};
 		});
@@ -63,7 +64,15 @@ function ProfileView(props) {
 					updateProfile({...credential});
 					Alert.alert('Success', res.res);
 				} else {
-					Alert.alert('Failure', res?.res || 'Failed to update');
+					if (typeof res.res === 'object') {
+						Alert.alert('Mobile login', JSON.stringify(res.res));
+					} else if (Array.isArray(res.res)) {
+						Alert.alert('Mobile login', res.res[0]);
+					} else if (res.Body) {
+						Alert.alert('Mobile login', res.Body);
+					} else {
+						Alert.alert('Mobile login', res.res);
+					}
 				}
 			});
 		} else {
@@ -74,9 +83,12 @@ function ProfileView(props) {
 	React.useEffect(() => {
 		if (profile) {
 			setCredential({...profile});
+			if(profile.MobileNumber) {
+				setValue(profile.MobileNumber)
+			}
 		}
 	}, [profile]);
-
+	console.log(value);
 	return (
 		<ScrollablePageView
 			navigation={navigation}
@@ -101,10 +113,11 @@ function ProfileView(props) {
 					placeholder="Enter your email id"
 					onChange={(value) => handleChange('Email', value)}
 				/>
-				<PhoneInput
+				{/* <PhoneInput
 					ref={phoneInput}
-					defaultValue={value}
+					value={value}
 					defaultCode="IN"
+				
 					layout="first"
 					containerStyle={[
 						{
@@ -137,18 +150,18 @@ function ProfileView(props) {
 						setValue(text);
 					}}
 					onChangeFormattedText={(text) => {
-						handleChange('MobileNumber', value);
+						handleChange('MobileNumber', text);
 					}}
 					countryPickerProps={{
 						theme: {backgroundColor: '#031B3B', onBackgroundTextColor: '#fff', filterPlaceholderTextColor: '#fff', primaryColorVariant: '#'}
 					}}
-				/>
-				{/* <Input
+				/> */}
+				<Input
 					style={styles.input}
 					value={credential.MobileNumber}
 					placeholder="Phone number"
 					onChange={(value) => handleChange('MobileNumber', value)}
-				/> */}
+				/>
 				<Button
 					style={styles.signupButton}
 					title="Save"
