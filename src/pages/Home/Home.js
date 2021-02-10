@@ -409,7 +409,7 @@ function Home(props) {
 			</View>
 		);
 	};
-
+	
 	const renderHome = () => (
 		<React.Fragment>
 			<Slider
@@ -419,8 +419,8 @@ function Home(props) {
 				index={0}
 				pageSize={bannerWidth}>
 				{bannerList.map((b, i) => (
-					<ImageBackground key={i} source={getUri(b)} style={[styles.banner]}>
-						<Typography variant="title1">{b.Title}</Typography>
+					<ImageBackground key={i} source={{uri: `https://spacem.in/${b.PosterPath}`}} style={[styles.banner]}>
+						<Typography variant="title1" lines={1}>{b.Title}</Typography>
 						<Typography variant="description">{`Geners: ${b.Genre}`}</Typography>
 						<View style={styles.bannerActionButton}>
 							<TouchableOpacity
@@ -504,7 +504,7 @@ function Home(props) {
 			)}
 		</React.Fragment>
 	);
-
+	console.log({bannerList});
 	return (
 		<ScrollablePageView
 			navigation={navigation}
