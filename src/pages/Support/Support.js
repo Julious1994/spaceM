@@ -81,16 +81,6 @@ function SupportView(props) {
 			}
 			bottomBar={<BuyButton onPress={handleTicketForm} />}>
 			<View style={[commonStyles.pageStyle, styles.container]}>
-				<View style={styles.pageContent}>
-					<Typography variant="title2">
-						We’re here to help you with anthing on SpaceM
-					</Typography>
-					<Typography variant="description">
-						At SpaceM everything we expact at a day’s start is you, better and
-						happier than yersterday. we have got you covered. share your concern
-						or check our frequently asked questions listed below.
-					</Typography>
-				</View>
 				{faqList.map((faq, i) => (
 					<Accordion key={i} label={faq.title} content={faq.description} />
 				))}
