@@ -5,12 +5,12 @@ module.exports = {
 				android: null, // disable Android platform, other platforms will still autolink if provided
 			},
 		},
-		'react-native-video': {
-            platforms: {
-                android: {
-                    sourceDir: '../node_modules/react-native-video/android-exoplayer',
-                },
-            },
-        }
+		// 'react-native-video': {
+        //     platforms: {
+        //         android: {
+        //             sourceDir: '../node_modules/react-native-video/android-exoplayer',
+        //         },
+        //     },
+        // }
 	},
 };

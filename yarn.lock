@@ -1143,7 +1143,7 @@
     sudo-prompt "^9.0.0"
     wcwidth "^1.0.1"
 
-"@react-native-community/clipboard@^1.2.2", "@react-native-community/clipboard@^1.5.1":
+"@react-native-community/clipboard@^1.5.1":
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/@react-native-community/clipboard/-/clipboard-1.5.1.tgz#32abb3ea2eb91ee3f9c5fb1d32d5783253c9fabe"
   integrity sha512-AHAmrkLEH5UtPaDiRqoULERHh3oNv7Dgs0bTC0hO5Z2GdNokAMPT5w8ci8aMcRemcwbtdHjxChgtjbeA38GBdA==
@@ -1239,13 +1239,6 @@
   integrity sha512-892K+kWUUi3cl+LlqEWIDrhvLgdL79tECi8JZUyq6IviKy/DNhuzCRlbHUjxK89f4ypPMMaFnFuR9Ie6DoIMsw==
   dependencies:
     type-detect "4.0.8"
-
-"@twotalltotems/react-native-otp-input@^1.3.11":
-  version "1.3.11"
-  resolved "https://registry.yarnpkg.com/@twotalltotems/react-native-otp-input/-/react-native-otp-input-1.3.11.tgz#cd075f155be188bc9bb294ea8ef311667b8efb3d"
-  integrity sha512-xSsEMa8llYHITKgx1FGwU3uK56Kk6+abgkJpo57pLnUpYC2CZpvhkvRKhFa7Ui6BhdRuh0Ob1O7q234d3CksRg==
-  dependencies:
-    "@react-native-community/clipboard" "^1.2.2"
 
 "@types/babel__core@^7.1.7":
   version "7.1.11"
@@ -5958,10 +5951,20 @@ react-native-gesture-handler@^1.8.0:
     invariant "^2.2.4"
     prop-types "^15.7.2"
 
+react-native-immersive-mode@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/react-native-immersive-mode/-/react-native-immersive-mode-1.1.0.tgz#93eaa485506c4770ed271ddb760bdb3e9e948276"
+  integrity sha512-rl7bjVO+c5NLxJ2LOg3wc6xuh2mhywlHC9UK8zx3kBKZzo87ReLg6ejH1M+qFsoMDl+2O/KrAlMj2RbG63Nr5Q==
+
 react-native-iphone-x-helper@^1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/react-native-iphone-x-helper/-/react-native-iphone-x-helper-1.3.0.tgz#84fd13e6b89cc3aa4daa80ec514bf15cb724d86d"
   integrity sha512-+/bcZWFeZt0xSS/+3CHM5K7qPL4vDO/3ARLIowzFpUPGZiPsv9+NET+XNqqseRYwFJwYMmtX+Q4TZKxAVy09ew==
+
+react-native-jw-media-player@^0.1.52:
+  version "0.1.52"
+  resolved "https://registry.yarnpkg.com/react-native-jw-media-player/-/react-native-jw-media-player-0.1.52.tgz#d12333e332359b3408c78d985335f1056cd768f8"
+  integrity sha512-kry3v/V6IPdpXKKWQXQ/UTKA78HxcChoX8uGUdNhZ+rph4ldtGBeOI/ekCJ/PNWlb1Twh5O/w8H2r2Ft7i2QAQ==
 
 react-native-linear-gradient@^2.5.6:
   version "2.5.6"
@@ -5988,6 +5991,11 @@ react-native-phone-number-input@^2.0.0:
   dependencies:
     google-libphonenumber "^3.2.10"
     react-native-country-picker-modal "^2.0.0"
+
+react-native-razorpay@^2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/react-native-razorpay/-/react-native-razorpay-2.2.2.tgz#67298811b5f8d5b910e4055f88a2cb9bca04e017"
+  integrity sha512-k0ldxnrI141WZlOilQw3TK+RZUcVXITm12533WzuDW2hg+OMrS/BK4J+U4F2lhhHQ5Mm2/78Y8C5iDGi1rwX7w==
 
 react-native-reanimated@^1.13.1:
   version "1.13.1"

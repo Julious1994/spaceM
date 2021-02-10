@@ -1,4 +1,4 @@
-package com.spacem;
+package com.spacemiraclestudios.spacem;
 
 import com.facebook.react.ReactActivity;
 

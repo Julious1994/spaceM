@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.spacem">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.spacemiraclestudios.spacem">
 
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -24,6 +24,21 @@
 		</activity>
 
 		<activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
+		<meta-data
+			android:name="JW_LICENSE_KEY"
+			android:value="GbgDlBoMbR4/LFqYcA4+5In6ufvA7K2tl9vZJOxEI49tuxiAm+DjO/e2T5Ke7ALL" />
+		<receiver android:name="androidx.media.session.MediaButtonReceiver">
+			<intent-filter>
+				<action android:name="android.intent.action.MEDIA_BUTTON" />
+			</intent-filter>
+		</receiver>
+		<service
+			android:name="com.appgoalz.rnjwplayer.MediaPlaybackService"
+			android:exported="false">
+			<intent-filter>
+				<action android:name="android.intent.action.MEDIA_BUTTON" />
+			</intent-filter>
+		</service>
 	</application>
 
 </manifest>
