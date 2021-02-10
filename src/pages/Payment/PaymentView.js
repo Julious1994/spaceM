@@ -56,7 +56,7 @@ function PaymentView(props) {
 			onMessage={(event) => handlePaymentSubmit(event)}
 			onNavigationStateChange={(e) => console.log(e)}
 			source={{
-				uri: `https://spacem.azurewebsites.net/Mobile/${gateway}`,
+				uri: `https://spacem.in/Mobile/${gateway}`,
 				method: 'POST',
 				body: `customerId=${state.user.CustomerId}&amount=${video.Amount}&mobileNumber=${state.user.MobileNumber || ''}&email=${state.user.Email}&UserName=${state.user.UserName}`,
 			}}

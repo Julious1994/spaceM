@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
+import {View, Text, StyleSheet, Image, TouchableOpacity, Alert} from 'react-native';
 import Typography from '../../components/Typography';
 import Button from '../../components/Button';
 import ScrollablePageView from '../../components/ScrollablePageView';
@@ -9,6 +9,11 @@ import StatusView from './StatusView';
 import {StackActions} from '@react-navigation/native';
 import Popup from './PopupOption';
 import {getUri} from '../../utils';
+import {useStateValue} from '../../store/store';
+import RazorpayCheckout from 'react-native-razorpay';
+import Service from '../../services/http';
+
+const services = new Service();
 
 const Header = ({navigation}) => (
 	<View style={styles.headerContainer}>
@@ -39,9 +44,12 @@ function PaymentForm(props) {
 	const {navigation, route} = props;
 	const {params = {}} = route;
 	const {video} = params;
+	const [state, dispatch] = useStateValue();
+
 	const [status, setStatus] = React.useState();
-	const [payment, setPayment] = React.useState('');
 	const [showCoupen, setShowCoupen] = React.useState(false);
+	const [order, setOrder] = React.useState();
+
 	const handleShowCoupen = React.useCallback((value) => {
 		// setEmail(value);
 	}, []);
@@ -63,6 +71,47 @@ function PaymentForm(props) {
 		navigation.dispatch(StackActions.push('PaymentView', {video, gateway: 'PayuMoney'}));
 	}, [video]);
 
+	const handleRazorpayPayment = React.useCallback(() => {
+		console.log(video, state.user);
+		if(order && order.id) {
+
+			var options = {
+				description: 'Payment for movie',
+				image: `https://spacem.in${video.ThumbnailPath}`,
+				currency: 'USD',
+				key: 'rzp_live_JepCOgRVwybZVi',
+				amount: video.Amount,
+				name: video.Title,
+				order_id: order.id,//Replace this with an order_id created using Orders API. Learn more at https://razorpay.com/docs/api/orders.
+				prefill: {
+				  email: state.user.Email,
+				  contact: state.user.MobileNumber,
+				  name: state.user.UserName,
+				},
+				theme: {backdrop_color: '#031B3B'}
+			  }
+			  RazorpayCheckout.open(options).then(async(data) => {
+				// handle success
+				console.log(`Success: ${data.razorpay_payment_id}`);
+				// insert data here
+				const _data = {
+					CustomerId: state.user.CustomerId,
+					VideoId: video.VideoId,
+					TransactionId: data.razorpay_payment_id,
+					// Bank: 'SBI',
+				};
+				services.post('PurchaseVideo', _data).then((res) => {
+					console.log('res', res);
+					setStatus('success');
+				});
+			  }).catch((error) => {
+				// handle failure
+				setStatus('failure');
+				console.log(`Error: ${error.code} | ${error.description}`);
+			  });
+		}
+	}, [order, video, state.user]);
+
 	const handleChangePlan = React.useCallback(() => {
 		navigation.dispatch(StackActions.replace('Plan'));
 	}, [navigation]);
@@ -70,6 +119,29 @@ function PaymentForm(props) {
 	const handleHome = React.useCallback(() => {
 		navigation.dispatch(StackActions.popToTop());
 	}, [navigation]);
+
+	
+
+	React.useEffect(() => {
+		dispatch({type: 'SET_LOADING', loading: true});
+		// const headers = {'Content-Type': 'application/json',};
+		// const url = 'https://api.razorpay.com/v1/orders';
+		const data = {
+			amount: video.Amount,
+			currency: 'USD',
+		}
+		//https://spacem.in/api/MobileRazor/
+		services.post('RazorPayMobile', data, {joiner: '/MobileRazor'}).then(res => {
+			console.log('res', res);
+			dispatch({type: 'SET_LOADING', loading: false});
+			if(res.status === 200) {
+				setOrder(res.res.Attributes);
+			} else {
+				Alert.alert('Network error', JSON.stringify(res));
+			}
+			// setOrder(res);
+		});
+	}, [video]);
 
 	if (status) {
 		return (
@@ -86,7 +158,7 @@ function PaymentForm(props) {
 			header={<Header navigation={navigation} />}
 			bottomBar={
 				<React.Fragment>
-					<Button
+					{/* <Button
 						style={styles.resetButton}
 						title="PAY with Paypal"
 						onPress={handlePaypalPayment}
@@ -95,6 +167,11 @@ function PaymentForm(props) {
 						style={styles.resetButton}
 						title="PAY with PayU"
 						onPress={handlePayuPayment}
+					/> */}
+					<Button
+						style={styles.resetButton}
+						title="Pay Now"
+						onPress={handleRazorpayPayment}
 					/>
 				</React.Fragment>
 			}>
