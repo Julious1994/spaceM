@@ -3,23 +3,21 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>206403307836-lttp7h3qujhj3j6gikgvnv6iq21hu1dd.apps.googleusercontent.com</string>
+	<string>119919994718-rb3b4vqp6544tkc3i1u777v9uk1gt7ku.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.206403307836-lttp7h3qujhj3j6gikgvnv6iq21hu1dd</string>
-	<key>ANDROID_CLIENT_ID</key>
-	<string>206403307836-8uj38u784op03vrjf0h7oehvfje9loaq.apps.googleusercontent.com</string>
+	<string>com.googleusercontent.apps.119919994718-rb3b4vqp6544tkc3i1u777v9uk1gt7ku</string>
 	<key>API_KEY</key>
-	<string>AIzaSyDX9jp83_wwa2hTFKB8XHWOwmIC4cymNhQ</string>
+	<string>AIzaSyDlbpU57W91zTL6JgiwYDymUykExHYcL_w</string>
 	<key>GCM_SENDER_ID</key>
-	<string>206403307836</string>
+	<string>119919994718</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.spacemiraclestudios.spacem</string>
 	<key>PROJECT_ID</key>
-	<string>spacem-b03ab</string>
+	<string>spacem-a198f</string>
 	<key>STORAGE_BUCKET</key>
-	<string>spacem-b03ab.appspot.com</string>
+	<string>spacem-a198f.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -31,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:206403307836:ios:5fda61ab6488739b4ff639</string>
+	<string>1:119919994718:ios:e7ee15ab62125cc52511cf</string>
 </dict>
 </plist>
