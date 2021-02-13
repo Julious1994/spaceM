@@ -17,7 +17,6 @@ import Service from '../services/http';
 import Page from '../components/Page';
 import {useStateValue} from '../store/store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {LoginButton, AccessToken, LoginManager} from 'react-native-fbsdk';
 import { GoogleSignin, GoogleSigninButton } from '@react-native-community/google-signin';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import LinearGradient from 'react-native-linear-gradient';
@@ -169,29 +168,6 @@ function LoginMenu(props) {
 		}
 	}, []);
     
-
-	const handleFB = React.useCallback(async () => {
-		dispatch({type: 'SET_LOADING', loading: true});
-		LoginManager.setLoginBehavior('web_only');
-		const result = await LoginManager.logInWithPermissions([
-			'public_profile',
-			'email',
-		]);
-		console.log(result);
-		AccessToken.getCurrentAccessToken().then((data) => {
-			console.log(data.accessToken.toString());
-			const token = data.accessToken.toString();
-			fetch(
-				'https://graph.facebook.com/v2.5/me?fields=email,name,friends&access_token=' +
-					token,
-			)
-				.then((response) => response.json())
-				.then((json) => {
-					handleSocialLogin(json, token);
-					console.log(json);
-				});
-		});
-	}, [dispatch, handleSocialLogin]);
 
 	return (
 		<Page>
