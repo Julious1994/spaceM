@@ -58,6 +58,10 @@ function Profile(props) {
 		logout(navigation);
 	}, [navigation]);
 
+	const handleWatchlist = React.useCallback(() => {
+		navigation.dispatch(StackActions.push("WatchList"))
+	}, [navigation]);
+
 	useEffect(() => {
 		if (state.user) {
 			const data = {
@@ -133,6 +137,13 @@ function Profile(props) {
 						style={styles.menuItemView}
 						onPress={handleChangePassword}>
 						<Typography variant="body">Change Password</Typography>
+						<Image
+							source={imageMapper.rightArrow.source}
+							style={styles.rightArrow}
+						/>
+					</TouchableOpacity>
+					<TouchableOpacity style={styles.menuItemView} onPress={handleWatchlist}>
+						<Typography variant="body">Watchlist</Typography>
 						<Image
 							source={imageMapper.rightArrow.source}
 							style={styles.rightArrow}

@@ -39,7 +39,7 @@ const tabs = [
 	{title: 'Home'},
 	{title: 'Movies'},
 	{title: 'Series'},
-	{title: 'New'},
+	{title: 'Classics'},
 	{title: 'Free'},
 ];
 
@@ -452,11 +452,11 @@ function Home(props) {
 				onPress={handleContinueVideoClick}
 			/>
 
-			<HorizontalList
+			{/* <HorizontalList
 				data={state.watchList}
 				title="Watchlist"
 				onPress={handleVideoClick}
-			/>
+			/> */}
 			<HorizontalList
 				data={bannerList}
 				title="Trending Now"
