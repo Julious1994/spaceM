@@ -14,10 +14,15 @@ function StatusView(props) {
 				style={styles.image}
 			/>
 			<Typography variant="title2" style={styles.title}>
-				YAY! It's done
+				{status === 'success' ? "YAY! It's done" : "Uh oh! It's Error"}
 			</Typography>
 			<Typography variant="body" style={styles.message}>
-				Transaction successful! We are proud, you have made someone richer.
+				{
+					status === 'success' ?
+					 	"Transaction successful! We are proud, you have made someone richer."
+					:
+						"Something wierd happened, Keep calm and try again."
+				}
 			</Typography>
 			{status === 'success' ? (
 				<Button title="GO HOME" onPress={props.onHome} />

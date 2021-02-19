@@ -25,7 +25,7 @@ const Header = ({navigation}) => (
 				style={styles.backButtonIcon}
 			/>
 		</TouchableOpacity>
-		<Typography variant="title3">Confirm Purchase</Typography>
+		{/* <Typography variant="title3">Confirm Purchase</Typography> */}
 	</View>
 );
 
@@ -143,18 +143,23 @@ function PaymentForm(props) {
 		});
 	}, [video]);
 
-	if (status) {
-		return (
-			<StatusView
-				status={status}
-				onClose={() => setStatus()}
-				onHome={handleHome}
-			/>
-		);
-	}
+	React.useEffect(() => {
+		handleRazorpayPayment();
+	}, [handleRazorpayPayment]);
+
+	// if (status) {
+	// 	return (
+	// 		<StatusView
+	// 			status={status}
+	// 			onClose={() => setStatus()}
+	// 			onHome={handleHome}
+	// 		/>
+	// 	);
+	// }
 
 	return (
 		<ScrollablePageView
+			scrollable={false}
 			header={<Header navigation={navigation} />}
 			bottomBar={
 				<React.Fragment>
@@ -168,65 +173,78 @@ function PaymentForm(props) {
 						title="PAY with PayU"
 						onPress={handlePayuPayment}
 					/> */}
-					<Button
+					{/* <Button
 						style={styles.resetButton}
 						title="Pay Now"
 						onPress={handleRazorpayPayment}
-					/>
+					/> */}
 				</React.Fragment>
 			}>
-			<Popup open={showCoupen} onClose={() => setShowCoupen(false)} />
-			<View style={[commonStyles.pageStyle, styles.container]}>
-				<View style={styles.row}>
-					<Typography variant="body" style={{fontWeight: 'normal'}}>
-						Movies list
-					</Typography>
-					{/* <TouchableOpacity onPress={handleChangePlan}>
-						<Typography variant="body" style={{color: '#159AEA'}}>
-							Change Plan
-						</Typography>
-					</TouchableOpacity> */}
-				</View>
-				<View style={styles.planViewContainer}>
-					<Image
-						source={getUri(video)}
-						style={styles.movieImage}
+			<View style={styles.paymentView}>
+				{
+					status && 
+					<StatusView
+						status={status}
+						onClose={() => {
+							setStatus();
+							handleRazorpayPayment();
+						}}
+						onHome={handleHome}
 					/>
-					<View style={{marginTop: 10}}>
-						<Typography variant="description" lines={1}>
-							{video.Title}
+				}
+				{/* <Popup open={showCoupen} onClose={() => setShowCoupen(false)} /> */}
+				{/* <View style={[commonStyles.pageStyle, styles.container]}>
+					<View style={styles.row}>
+						<Typography variant="body" style={{fontWeight: 'normal'}}>
+							Movies list
 						</Typography>
-						{/* <Typography variant="body" style={{fontWeight: '100'}}>
-							Watch on 4 screens
-						</Typography> */}
+						<TouchableOpacity onPress={handleChangePlan}>
+							<Typography variant="body" style={{color: '#159AEA'}}>
+								Change Plan
+							</Typography>
+						</TouchableOpacity>
 					</View>
-					<View style={styles.priceView}>
-						<Typography variant="title2">{`$${video.Amount}`}</Typography>
-						{/* <Typography variant="title3" style={styles.priceMonth}>
-							/m
-						</Typography> */}
+					<View style={styles.planViewContainer}>
+						<Image
+							source={getUri(video)}
+							style={styles.movieImage}
+						/>
+						<View style={{marginTop: 10}}>
+							<Typography variant="description" lines={1}>
+								{video.Title}
+							</Typography>
+							<Typography variant="body" style={{fontWeight: '100'}}>
+								Watch on 4 screens
+							</Typography>
+						</View>
+						<View style={styles.priceView}>
+							<Typography variant="title2">{`₹ ${video.Amount}`}</Typography>
+							<Typography variant="title3" style={styles.priceMonth}>
+								/m
+							</Typography> 
+						</View>
 					</View>
-				</View>
-				{/* <TouchableOpacity onPress={() => setShowCoupen(true)} style={styles.coupenView}>
-					<Typography variant="body" style={{color: '#159AEA'}}>
-						Use Coupen
-					</Typography>
-				</TouchableOpacity> */}
-				{/* <View style={styles.separator} />
-				<View>
-					<Typography style={styles.myCardText} variant="body">
-						My Card
-					</Typography>
+					<TouchableOpacity onPress={() => setShowCoupen(true)} style={styles.coupenView}>
+						<Typography variant="body" style={{color: '#159AEA'}}>
+							Use Coupen
+						</Typography>
+					</TouchableOpacity>
+					<View style={styles.separator} />
 					<View>
-						<PaymentCard />
+						<Typography style={styles.myCardText} variant="body">
+							My Card
+						</Typography>
+						<View>
+							<PaymentCard />
+						</View>
 					</View>
-				</View>
-				<TouchableOpacity style={styles.addNewCardContainer}>
-					<Image source={imageMapper.plus.source} style={styles.plusImage} />
-					<Typography variant="body" style={styles.addNewCard}>
-						Add new card
-					</Typography>
-				</TouchableOpacity> */}
+					<TouchableOpacity style={styles.addNewCardContainer}>
+						<Image source={imageMapper.plus.source} style={styles.plusImage} />
+						<Typography variant="body" style={styles.addNewCard}>
+							Add new card
+						</Typography>
+					</TouchableOpacity>
+				</View> */}
 			</View>
 		</ScrollablePageView>
 	);
@@ -259,6 +277,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		paddingTop: 10,
 		paddingBottom: 10,
+		marginBottom: 20,
 	},
 	backButton: {
 		position: 'absolute',
@@ -342,6 +361,11 @@ const styles = StyleSheet.create({
 		width: 110,
 		height: 75,
 	},
+	paymentView: {
+		display: 'flex',
+		flexDirection: 'column',
+		justifyContent: 'center',
+	}
 });
 
 export default PaymentForm;
