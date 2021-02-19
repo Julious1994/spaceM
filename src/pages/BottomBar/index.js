@@ -43,7 +43,7 @@ function MenuItem(props) {
 const menus = [
 	{title: 'Home', page: 'Home', image: 'home'},
 	{title: 'Search', page: 'SearchView', image: 'search'},
-	{title: 'WatchList', page: 'WatchList', image: 'watchListMenu'},
+	// {title: 'WatchList', page: 'WatchList', image: 'watchListMenu'},
 	{title: 'Profile', page: 'Profile', Component: ProfileView},
 ];
 
