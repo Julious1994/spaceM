@@ -41,8 +41,8 @@ const styles = StyleSheet.create({
 		alignSelf: 'center',
 		fontWeight: 'normal',
 		letterSpacing: 0.3,
-		paddingLeft: 4,
-		paddingRight: 4,
+		paddingLeft: 3,
+		paddingRight: 3,
 	},
 	activeText: {
 		color: '#FFF',
