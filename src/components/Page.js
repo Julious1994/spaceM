@@ -7,7 +7,7 @@ function Page(props) {
   const [state] = useStateValue();
 
 	return (
-		<View style={styles.container}>
+		<View style={[styles.container, props.style]}>
 			{state.loading && <Loader />}
 			{props.children}
 		</View>
