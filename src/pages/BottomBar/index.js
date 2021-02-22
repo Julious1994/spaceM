@@ -51,10 +51,12 @@ function BottomBar(props) {
 	const {navigation} = props;
 	const [state] = useStateValue();
 	const handleRedirect = React.useCallback(
-		(page) => {
-			navigation.dispatch(StackActions.push(page));
+		(page, i) => {
+			if(props.active !== i) {
+				navigation.dispatch(StackActions.push(page));
+			}
 		},
-		[navigation],
+		[navigation, props.active],
 	);
 
 	return (
@@ -67,7 +69,7 @@ function BottomBar(props) {
 					active={props.active === i}
 					title={menu.title}
 					user={state.user}
-					onPress={() => handleRedirect(menu.page)}
+					onPress={() => handleRedirect(menu.page, i)}
 				/>
 			))}
 		</View>
