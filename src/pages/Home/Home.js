@@ -85,6 +85,7 @@ function Home(props) {
 	const [seriesList, setSeriesList] = React.useState([]);
 	const [movieList, setMovieList] = React.useState([]);
 	const [videoList, setVideoList] = React.useState([]);
+	const [classicsList, setClassicsList] = React.useState([]);
 	const data = [...Array(10).keys()];
 	const banner = [...Array(4).keys()];
 	const [activeTab, setActiveTab] = React.useState(0);
@@ -95,7 +96,6 @@ function Home(props) {
 
 	const handleVideoClick = React.useCallback(
 		(item) => {
-			console.log('click');
 			navigation.dispatch(
 				StackActions.push('VideoDetail', {
 					video: {...item},
@@ -127,6 +127,9 @@ function Home(props) {
 				`DisplayVideoList?CategoryId=${category.CategoryId}`,
 			);
 			if (videos.length) {
+				if(category.CategoryName === "Classics ") {
+					setClassicsList(videos);
+				}
 				list.push({
 					...category,
 					videos,
@@ -213,7 +216,6 @@ function Home(props) {
 		services.get('FreeMovieList').then((res) => {
 			setLoading(false);
 			setFreeMovieList([...res]);
-			console.log('FreeMoviewList', res);
 		});
 	}, []);
 
@@ -221,7 +223,6 @@ function Home(props) {
 		setLoading(true);
 		services.get('AllMovieList').then((res) => {
 			setLoading(false);
-			console.log('All MoviewList', res);
 			setMovieList([...res]);
 		});
 	}, []);
@@ -230,19 +231,16 @@ function Home(props) {
 		setLoading(true);
 		services.get('WebSeries').then((res) => {
 			setLoading(false);
-			console.log('Webseries list', res);
 			setSeriesList([...res]);
 		});
 	}, []);
 
 	const fetchNotification = React.useCallback(() => {
-		console.log('sssss', state.user);
 		if (state.user.CustomerId) {
 			services
 				.get(`DisplayNotification?CustomerId=${state.user.CustomerId}`)
 				.then((res) => {
 					dispatch({type: 'SET_NOTIFICATION', data: [...res]});
-					console.log('notification list', res);
 				});
 		}
 	}, [state.user]);
@@ -366,9 +364,13 @@ function Home(props) {
 				/>
 			);
 		}
+		console.log(videoList);
+		const videoView = videoList.filter(v => v.CategoryName === "Classics "); 
+		const videos = videoView.videos || [];
+		console.log(videos)
 		return (
 			<View style={[styles.moreViewContainer]}>
-				{releaseList.map((v, i) => (
+				{classicsList.map((v, i) => (
 					<TouchableOpacity key={i} onPress={() => handleVideoClick(v)}>
 						<Image
 							source={{
@@ -504,7 +506,6 @@ function Home(props) {
 			)}
 		</React.Fragment>
 	);
-	console.log({bannerList});
 	return (
 		<ScrollablePageView
 			navigation={navigation}
